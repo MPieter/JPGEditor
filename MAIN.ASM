@@ -11,6 +11,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 
+	; Coucou micheline
 
 	; Exit to DOS
 	mov	ax, 4c00h
