@@ -3,7 +3,9 @@
 ; External datasegments
 externdef TBQuantazation:BYTE 				; Quantazation Tables
 externdef TBHuffman:BYTE					; Huffman Tables
-externdef TBData:BYTE						; Data 
+externdef TBDataY:BYTE						; Data, Y comp.
+externdef TBDataCr:BYTE						; Data, Cr comp.
+externdef TBDataCb:BYTE						; Data, Cb comp.
 
 ; External methods
 externdef readJPG:FAR
