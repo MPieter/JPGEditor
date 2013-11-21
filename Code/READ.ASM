@@ -7,6 +7,7 @@ readJPG PROC FAR
 	mov bp, sp
 	
 	mov sp, bp
+	pop bp
 	ret 0
 readJPG ENDP
 

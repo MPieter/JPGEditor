@@ -1,5 +1,7 @@
 .MODEL large
 
+externdef TBHuffman:BYTE ; Huffman Tables
+
 .CODE
 
 entropyDecoding PROC FAR
@@ -7,6 +9,7 @@ entropyDecoding PROC FAR
 	mov bp, sp
 	
 	mov sp, bp
+	pop bp
 	ret 0
 entropyDecoding ENDP
 

@@ -1,14 +1,15 @@
 .MODEL large ; one data and one code segment, stack and data segment are grouped
 
 ; External datasegments
-externdef TBQuantazation:BYTE 				; Quantazation Tables
-externdef TBHuffman:BYTE					; Huffman Tables
-externdef TBData:BYTE						; Data 
+externdef TBQuantization:BYTE
+externdef TBDataY:BYTE
+externdef TBDataCb:BYTE
+externdef TBDataCr:BYTE
 
 ; External methods
 externdef readJPG:FAR
 externdef entropyDecoding:FAR
-externdef Dequantazation:FAR
+externdef Dequantization:FAR
 externdef iDCT:FAR
 externdef shiftColors:FAR
 externdef showImage:FAR
@@ -28,8 +29,52 @@ main:
 	
 	call entropyDecoding
 	
-	call Dequantazation
+	mov ax, seg TBDataY
+	push ax
+	mov ax, offset TBDataY
+	push ax
+	mov ax, seg TBQuantization
+	push ax
+	mov ax, offset TBQuantization
+	push ax
+	call Dequantization
 	
+	mov ax, seg TBDataCb
+	push ax
+	mov ax, offset TBDataCb
+	push ax
+	mov ax, seg TBQuantization
+	push ax
+	mov ax, offset TBQuantization
+	push ax
+	call Dequantization
+	
+	mov ax, seg TBDataCr
+	push ax
+	mov ax, offset TBData Cr
+	push ax
+	mov ax, seg TBQuantization
+	push ax
+	mov ax, offset TBQuantization
+	push ax
+	call Dequantization
+	
+	mov ax, seg TBDataY
+	push ax
+	mov ax, offset TBDataY
+	push ax
+	call iDCT
+	
+	mov ax, seg TBDataCb
+	push ax
+	mov ax, offset TBDataCb
+	push ax
+	call iDCT
+	
+	mov ax, seg TBDataCr
+	push ax
+	mov ax, offset TBData Cr
+	push ax
 	call iDCT
 	
 	call shiftColors
