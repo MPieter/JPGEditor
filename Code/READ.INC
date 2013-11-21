@@ -1,0 +1,2 @@
+
+externdef readJPG:FAR

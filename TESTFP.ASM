@@ -4,6 +4,7 @@
 
 .DATA        ; data segment, global variables
 message db "Optellen gelukt$"
+floatingPoint dd 1.5
 
 .CODE        ; code segment
 
@@ -13,8 +14,8 @@ main:
 	mov	ds, ax
 
 start:
-	mov ax, 1.5
-	fadd ax, 1.5
+	mov ax, dd
+	fadd ax, dd
 	cmp ax, 3
 	je exit
 	jmp start

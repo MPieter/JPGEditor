@@ -1,18 +1,15 @@
 .MODEL large ; one data and one code segment, stack and data segment are grouped
 
 ; External datasegments
-externdef TBQuantization:BYTE
-externdef TBDataY:BYTE
-externdef TBDataCb:BYTE
-externdef TBDataCr:BYTE
+include DATA.INC
 
 ; External methods
-externdef readJPG:FAR
-externdef entropyDecoding:FAR
-externdef Dequantization:FAR
-externdef iDCT:FAR
-externdef shiftColors:FAR
-externdef showImage:FAR
+include READ.INC
+include ENTROPY.INC
+include QUANT.INC
+include IDCT.INC
+include SHIFT.INC
+include SHOW.INC
 
 .STACK 1024  ; stack, 1024 bytes
 

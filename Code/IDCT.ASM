@@ -14,7 +14,7 @@ iDCT PROC FAR
 	push bp
 	mov bp, sp
 	
-	
+	; TODO integer based discrete cosine transform implementeren
 	
 	
 	mov sp, bp

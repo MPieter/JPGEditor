@@ -1,0 +1,2 @@
+
+externdef iDCT:FAR

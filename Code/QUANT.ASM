@@ -55,6 +55,9 @@ DequantBlock PROC NEAR
 	mov cx, 0
 LoopStart:
 	; Get Quantazation element
+	; TODO ds en es door elkaar gebruiken. Hierdoor moeten we minder van segment veranderen
+	; En si en di gebruiken. Dan kijken naar de instructie welke default die juist pakt.
+	; Bijvoorbeeld met lodsb en movsb
 	mov ax, [bp + 4][2]
 	mov es, ax
 	mov di, [bp + 4][0]
