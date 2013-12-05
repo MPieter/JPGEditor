@@ -1,8 +1,5 @@
 .MODEL large ; one data and one code segment, stack and data segment are grouped
 
-; External datasegments
-include DATA.INC
-
 ; External methods
 include READ.INC
 include ENTROPY.INC
@@ -16,6 +13,9 @@ include SHOW.INC
 .DATA        ; data segment, global variables
 	dataY dw 1000 dup (?)
 
+	inputIDCT DW 64 dup (?)
+	outputIDCT db 64 dup (?)
+	
 .FARDATA
 	dataCb dw 1000 dup (?)
 	
