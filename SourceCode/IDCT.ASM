@@ -50,39 +50,5 @@ EndFor:
 	ret ;2
 IDCTBlock ENDP
 
-; Calculates the value of the cos(x) where x is the input argument that is stored
-; on top of the stack.
-; The return value is stored in ax.
-calcCOS PROC NEAR
-	push bp
-	mov bp, sp
-	
-								; TODO implementeren
-	
-	mov sp, bp
-	pop bp
-	ret 2
-calcCOS ENDP
-
-; Calculates the normalizing scale factor in the invers disrete cosine transform.
-; The return value is stored in ax.
-; Accepts one argument on top of the stack.
-calcNormalizer PROC NEAR
-	push bp
-	mov bp, sp
-	
-	mov dx, [bp + 4]
-	cmp dx, 0
-	jne false	
-true:							; TODO correcte waarden nog implementeren
-	mov ax, 0
-	jmp exitF
-false:
-	mov ax, 1
-exitF:
-	mov sp, bp
-	pop bp
-	ret 2
-calcNormalizer ENDP
 
 END
