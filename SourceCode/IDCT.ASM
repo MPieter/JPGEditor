@@ -1,5 +1,5 @@
 .MODEL large
-
+include IDCT.INC
 ; Constants
 blockW equ 8
 blockH equ 8
@@ -492,7 +492,7 @@ iDCTBlock PROC NEAR
 EndFor:
 	mov sp, bp
 	pop bp
-	ret 2
+	ret ;2
 IDCTBlock ENDP
 
 ; Calculates the result of a elemtwise addition of two arrays for length 8
