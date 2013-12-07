@@ -1,5 +1,5 @@
 .MODEL large
-
+include QUANT.INC
 
 ; Constants
 totalBlock equ 64000; Total values of one channel
@@ -17,27 +17,27 @@ Dequantization PROC FAR
 	push bp
 	mov bp, sp
 	
-	mov bx, 0 ; Keeps track of current block
-	mov dx, [bp + 6][4]
-LoopBlocks:
-	mov dx, [bp + 6][6]
-	push dx
-	add dx, bx
-	push dx
-	mov dx, [bp + 6][2]
-	push dx
-	mov dx, [bp + 6][0]
-	push dx
-	call DequantBlock
+	; mov bx, 0 ; Keeps track of current block
+	; mov dx, [bp + 6][4]
+; LoopBlocks:
+	; mov dx, [bp + 6][6]
+	; push dx
+	; add dx, bx
+	; push dx
+	; mov dx, [bp + 6][2]
+	; push dx
+	; mov dx, [bp + 6][0]
+	; push dx
+	; call DequantBlock
 	
-	add bx, lengthBlock
-	cmp cx, totalBlock
-	jne LoopBlocks
+	; add bx, lengthBlock
+	; cmp cx, totalBlock
+	; jne LoopBlocks
 	
 LoopEnd:
 	mov sp, bp
 	pop bp
-	ret 8
+	ret ; 8
 Dequantization ENDP
 
 ; Excecutes the dequantazation of one block.

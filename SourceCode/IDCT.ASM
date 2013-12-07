@@ -1,5 +1,5 @@
 .MODEL large
-
+include IDCT.INC
 ; Constants
 blockW equ 8
 blockH equ 8
@@ -47,7 +47,7 @@ forV:
 EndFor:
 	mov sp, bp
 	pop bp
-	ret 2
+	ret ;2
 IDCTBlock ENDP
 
 ; Calculates the value of the cos(x) where x is the input argument that is stored
