@@ -1,8 +1,10 @@
 .MODEL large
+
 include IDCT.INC
+
 ; Constants
-blockW equ 8
-blockH equ 8
+blockDim equ 8
+blockEl equ 64
 
 .DATA
 	c0 dw 8 ; c coefficients
@@ -37,18 +39,12 @@ blockH equ 8
 	a5 dw 8
 	a6 dw 8
 	a7 dw 8
-	o0 dw 8 ; o coefficients
-	o1 dw 8 
-	o2 dw 8
-	o3 dw 8
-	o4 dw 8
-	o5 dw 8
-	o6 dw 8
-	o7 dw 8
 	
 	temp1 dw 8 ; used for interim results
 	temp2 dw 8
 	temp3 dw 8
+	
+	tempIDCT dw 64 ; used for interim matrices during the calculation of the IDCT
 	
 .CODE
 
@@ -56,29 +52,43 @@ blockH equ 8
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data
+; Argument 3 = segment address for output
+; Argument 4 = offset address for output
 iDCT PROC FAR
 	push bp
 	mov bp, sp
 	
 	; TODO integer based discrete cosine transform implementeren
+	mov ax, [bp + 4][6] ; first argument
+	push ax
+	mov ax, [bp + 4][4] ; second argument
+	push ax
+	mov ax, seg tempIDCT
+	push ax
+	mov ax, offset tempIDCT
+	push ax
+	call iDCT_Bink
 	
 	
-	mov sp, bp
+	
+	mov sp, bp 
 	pop bp
 	ret 0
 iDCT ENDP
 
-; Calculates the inverse discrete cosine transform of one block.
+; Calculates the bink inverse discrete cosine transform of one block.
 ; Arguments on the stack: 
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of current data block in data
-iDCTBlock PROC NEAR
+; Argument 3 = segment address for output
+; Argument 4 = offset address for output
+iDCT_Bink PROC NEAR
 	push bp
 	mov bp, sp
 	
 	; set data segment and source index register to data source
-	mov ds, [bp + 4][2]
-	mov si, [bp + 4][0]
+	mov ds, [bp + 4][6] ; first argument
+	mov si, [bp + 4][4] ; second argument
 	
 	; set extra segment to current data segment
 	mov es, seg c0
@@ -489,18 +499,107 @@ iDCTBlock PROC NEAR
 	push ax
 	call ArraySUB
 	
-EndFor:
+	; calculate output
+	; output = [o0; o1; o2; o3; o4; o5; o6; o7] 
+	; with   o0 = a0 + a4;
+	; o1 = a1 + a5;
+    ; o2 = a2 + a6;
+    ; o3 = a3 + a7;
+    ; o4 = a3 - a7;
+    ; o5 = a2 - a6;
+    ; o6 = a1 - a5;
+    ; o7 = a0 - a4;
+	; ---------------------
+	mov es, [bp + 4][2] ; third argument
+	; calculate o0: o0 = a0 + a4
+	mov ax, offset a0
+	push ax
+	mov ax, offset a4
+	push ax
+	mov ax, [bp + 4][0] ; last argument on the stack
+	push ax
+	call ArrayADD
+	; calculate o1: o1 = a1 + a5
+	mov ax, offset a1
+	push ax
+	mov ax, offset a5
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 16 ; offset is 8 words further
+	push ax
+	call ArrayADD
+	
+	; calculate o2: o2 = a2 + a6
+	mov ax, offset a2
+	push ax
+	mov ax, offset a6
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 32 ; offset is 16 words further
+	push ax
+	call ArrayADD
+	
+	; calculate o3: o3 = a3 + a7
+	mov ax, offset a3
+	push ax
+	mov ax, offset a7
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 48 ; offset is 24 words further
+	push ax
+	call ArrayADD
+	
+	; calculate o4: o4 = a3 - a7
+	mov ax, offset a3
+	push ax
+	mov ax, offset a7
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 64 ; offset is 32 words further
+	push ax
+	call ArraySUB
+	
+	; calculate o5: o5 = a2 - a6
+	mov ax, offset a2
+	push ax
+	mov ax, offset a6
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 80 ; offset is 40 words further
+	push ax
+	call ArraySUB
+	
+	; calculate o6: o6 = a1 - a5
+	mov ax, offset a1
+	push ax
+	mov ax, offset a5
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 96 ; offset is 48 words further
+	push ax
+	call ArraySUB
+	
+	; calculate o7: o7 = a0 - a4	
+	mov ax, offset a0
+	push ax
+	mov ax, offset a4
+	push ax
+	mov ax, [bp + 4][0]
+	add ax, 112 ; offset is 56 words further
+	push ax
+	call ArraySUB
+	
 	mov sp, bp
 	pop bp
-	ret ;2
-IDCTBlock ENDP
+	ret 8 ; four word arguments  on the stack
+iDCT_Bink ENDP
 
 ; Calculates the result of a elemtwise addition of two arrays for length 8
 ; Arguments on the stack: 
 ; Argument 1 = offset address of first operand array
 ; Argument 2 = o ffset address of second operand array
 ; Argument 3 = offset address of result array
-; Note: all offset addresses are supposed to be in het current data segment and ds and es are already set to the same correct segment
+; Note: all offset addresses are supposed to be in het current data segment and ds and es are already set to the correct segment
 ArrayADD PROC NEAR
 	push bp
 	mov bp, sp
@@ -524,7 +623,7 @@ ArrayADD PROC NEAR
 	
 	mov sp, bp
 	pop bp
-	ret 6
+	ret 6 
 ArrayADD ENDP
 
 ; Calculates the result of a elemtwise substraction of two arrays for length 8
@@ -581,6 +680,35 @@ ArraySAR PROC NEAR
 	pop bp
 	ret 6
 ArraySAR ENDP
+
+; Calculates the transpose of a matrix. Input is a array of length 64. The rows are sequential stored.
+; Arguments on the stack: 
+; Argument 1 = segment of input matrix
+; Argument 2 = offset of input matrix
+; Argument 3 = segment of output matrix
+; Argument 4 = offset of output matrix
+MatrixTranspose PROC NEAR
+	push bp
+	mov bp, sp
+
+	mov ds, [bp + 4][6] ; First Argument
+	mov si, [bp + 4][4] ; Second argument
+	mov es, [bp + 4][2] ; Third Argument
+	mov di, [bp + 4][0] ; Last Argument
+	mov cx, 64
+	
+@@:
+	
+	
+	loop @B
+	
+
+	
+EndFor:
+	mov sp, bp
+	pop bp
+	ret 4
+MatrixTranspose ENDP
 
 
 END
