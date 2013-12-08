@@ -1,0 +1,3 @@
+
+
+externdef printints:FAR

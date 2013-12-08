@@ -7,44 +7,45 @@ blockDim equ 8
 blockEl equ 64
 
 .DATA
-	c0 dw 8 ; c coefficients
-	c1 dw 8
-	c2 dw 8
-	c3 dw 8
-	c4 dw 8
-	c5 dw 8
-	c6 dw 8
-	c7 dw 8
-	d0 dw 8 ; d coefficients
-	d1 dw 8
-	d2 dw 8
-	d3 dw 8
-	d4 dw 8
-	d5 dw 8
-	d6 dw 8
-	d7 dw 8
-	b0 dw 8 ; b coefficients
-	b1 dw 8
-	b2 dw 8
-	b3 dw 8
-	b4 dw 8
-	b5 dw 8
-	b6 dw 8
-	b7 dw 8
-	a0 dw 8 ; a coefficients
-	a1 dw 8 
-	a2 dw 8
-	a3 dw 8
-	a4 dw 8
-	a5 dw 8
-	a6 dw 8
-	a7 dw 8
+	c0 dw 8 dup(?); c coefficients
+	c1 dw 8 dup(?)
+	c2 dw 8 dup(?)
+	c3 dw 8 dup(?)
+	c4 dw 8 dup(?)
+	c5 dw 8 dup(?)
+	c6 dw 8 dup(?)
+	c7 dw 8 dup(?)
+	d0 dw 8 dup(?) ; d coefficients
+	d1 dw 8 dup(?)
+	d2 dw 8 dup(?)
+	d3 dw 8 dup(?)
+	d4 dw 8 dup(?)
+	d5 dw 8 dup(?)
+	d6 dw 8 dup(?)
+	d7 dw 8 dup(?)
+	b0 dw 8 dup(?) ; b coefficients
+	b1 dw 8 dup(?)
+	b2 dw 8 dup(?)
+	b3 dw 8 dup(?)
+	b4 dw 8 dup(?)
+	b5 dw 8 dup(?)
+	b6 dw 8 dup(?)
+	b7 dw 8 dup(?)
+	a0 dw 8 dup(?) ; a coefficients
+	a1 dw 8 dup(?) 
+	a2 dw 8 dup(?)
+	a3 dw 8 dup(?)
+	a4 dw 8 dup(?)
+	a5 dw 8 dup(?)
+	a6 dw 8 dup(?)
+	a7 dw 8 dup(?)
 	
-	temp1 dw 8 ; used for interim results
-	temp2 dw 8
-	temp3 dw 8
+	temp1 dw 8 dup(?) ; used for interim results
+	temp2 dw 8 dup(?)
+	temp3 dw 8 dup(?)
 	
-	tempIDCT dw 64 ; used for interim matrices during the calculation of the IDCT
+	tempIDCT1 dw 64 dup(?) ; used for interim matrices during the calculation of the IDCT
+	tempIDCT2 dw 64 dup(?)
 	
 .CODE
 
@@ -59,17 +60,45 @@ iDCT PROC FAR
 	mov bp, sp
 	
 	; TODO integer based discrete cosine transform implementeren
-	mov ax, [bp + 4][6] ; first argument
+	mov ax, [bp +6][6] ; first argument
 	push ax
-	mov ax, [bp + 4][4] ; second argument
+	mov ax, [bp + 6][4] ; second argument
 	push ax
-	mov ax, seg tempIDCT
+	mov ax, seg tempIDCT1
 	push ax
-	mov ax, offset tempIDCT
+	mov ax, offset tempIDCT1
 	push ax
 	call iDCT_Bink
 	
+	mov ax, seg tempIDCT1
+	push ax
+	mov ax, offset tempIDCT1
+	push ax
+	mov ax, seg tempIDCT2
+	push ax
+	mov ax, offset tempIDCT2
+	push ax
+	call MatrixTranspose
 	
+	mov ax, seg tempIDCT2
+	push ax
+	mov ax, offset tempIDCT2
+	push ax
+	mov ax, seg tempIDCT1
+	push ax
+	mov ax, offset tempIDCT1
+	push ax
+	call iDCT_Bink
+	
+	mov ax, seg tempIDCT1
+	push ax
+	mov ax, offset tempIDCT1
+	push ax
+	mov ax, [bp + 6][2]
+	push ax
+	mov ax, [bp + 6][0]
+	push ax
+	call MatrixTranspose
 	
 	mov sp, bp 
 	pop bp
@@ -91,9 +120,10 @@ iDCT_Bink PROC NEAR
 	mov si, [bp + 4][4] ; second argument
 	
 	; set extra segment to current data segment
-	mov es, seg c0
+	mov ax, seg c0
+	mov es, ax
 	; set direction flag
-	xor df, df
+	; xor df, df ; TODO : is dit echt nodig ? 
 	
 	; Initialize current data segment
 	; -----------------------------------
@@ -144,7 +174,8 @@ iDCT_Bink PROC NEAR
 	
 	; Start calculations
 	; --------------------
-	mov ds, seg c0	; set ds-segment also to current data segment
+	mov ax, seg c0
+	mov ds, ax	; set ds-segment also to current data segment
 	
 	
 	; calculate c4: c4 = d4
@@ -313,7 +344,7 @@ iDCT_Bink PROC NEAR
 	push ax
 	mov ax, offset b4
 	push ax
-	push ax, offset temp2
+	mov ax, offset temp2
 	push ax
 	call ArrayADD
 	mov ax, offset b4
@@ -672,7 +703,8 @@ ArraySAR PROC NEAR
 	mov di, [bp + 4][0]
 @@:
 	lodsw
-	sar ax, [bp + 4][2]
+	mov cl, [bp + 4][2]
+	sar ax, cl ; quantity has to be specificied in cl
 	stosw
 	loop @B
 	
@@ -694,17 +726,37 @@ MatrixTranspose PROC NEAR
 	mov ds, [bp + 4][6] ; First Argument
 	mov si, [bp + 4][4] ; Second argument
 	mov es, [bp + 4][2] ; Third Argument
-	mov di, [bp + 4][0] ; Last Argument
-	mov cx, 64
+	; mov di, [bp + 4][0] ; Last Argument -> overbodige instructie, moet toch elke keer in de for-loop gebeuren
+	mov cx, 0
 	
+	; C++ Code
+	;	for (int i = 0; i < 64; i++) {
+	;	output[(i % 8)*8 + i / 8] = input[i];
+	;}
+	xor dx,dx
 @@:
+	mov ax, cx
 	
+	mov bx, 0
+	div bx ; result of calculation: AX = DX:AX / Op, rest in DX
+	push ax ; save register ax
+	mov ax, dx
+	mov dx, 8
+	mul dx ; result of calculation: DX:AX = AX*Op
+	mov dx, ax
+	pop ax ; restore register ax
+	add ax, dx
+	mov di, [bp + 4][0]
+	add di, ax ; calculate offset address
+	movsw
 	
-	loop @B
+	inc cx
+	cmp cx, 64
+	je EndLoop
+	jmp @B
 	
 
-	
-EndFor:
+EndLoop:
 	mov sp, bp
 	pop bp
 	ret 4
