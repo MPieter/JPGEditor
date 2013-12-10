@@ -1,6 +1,11 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 SourceCode/Thumbs.db
 *.OBJ
+=======
+*.swp
+*.OBJ
+>>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
 =======
 *.swp
 *.OBJ
