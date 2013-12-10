@@ -1,12 +1,12 @@
 .MODEL large ; one data and one code segment, stack and data segment are grouped
 
 ; External methods
-; include READ.INC
-; include EXPANSHT.INC
+include READ.INC
+include EXPANSHT.INC
 include ENTROPY.INC
 include QUANT.INC
 include IDCT.INC
-include IDCTTEST.INC
+include IDCTT.INC
 include SHIFT.INC
 include SHOW.INC
 include HELPERS.INC
@@ -38,7 +38,7 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 	HufACLd db 162 DUP (?)				; Huffman Tables for AC values of the light intensity (data)
 	HufACCl db 16 DUP (?)				; Huffman Tables for AC values of the chrominance (lengths)
 	HufACCd db 162 DUP (?)			; Huffman Tables for AC values of the chrominance (data)
-	Raw db 60000 DUP (?)				; Raw BITstream
+	Raw db 200 DUP (?)				; Raw BITstream ; TODO size terug veranderen -> nu krijgen we error dat memory segment groter is als 64k
 	; Define place for code values
 	;HcodeACL dw 162 dup (?)
 	; HcodeACC dw 162 dup (?)
@@ -62,39 +62,14 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 
-	call IDCTTEST
+	call IDCTT
 	
 	; call readJPG
 	
 	; call expansionHT
 	
 	;call entropyDecoding
-	
-	; call Dequantization
 
-	; call Dequantization
-	
-	; call Dequantization
-	
-	; mov ax, seg TBDataY
-	; push ax
-	; mov ax, offset TBDataY
-	; push ax
-	; call iDCT
-	
-	; mov ax, seg TBDataCb
-	; push ax
-	; mov ax, offset TBDataCb
-	; push ax
-	; call iDCT
-	
-	; mov ax, seg TBDataCr
-	; push ax
-	; mov ax, offset TBData Cr
-	; push ax
-	; call iDCT
-	
-	; call shiftColors
 	
 	; call showImage
 	
