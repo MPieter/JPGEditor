@@ -12,7 +12,7 @@ Hufd dw 0
 Hufl dw 0
 Hcode dw 0
 HufDCd dw 0
-HufDCl dw 0s
+HufDCl dw 0
 HcodeDC dw 0
 
 PreviousDC dw 0
@@ -20,8 +20,6 @@ PreviousDCL dw 0
 PreviousDCCr dw 0
 PreviousDCCb dw 0
 
-.FARDATA?
-; We should later try to overwrite Raw...
 
 .CODE
 entropyDecoding PROC FAR

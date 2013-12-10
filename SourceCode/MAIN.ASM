@@ -38,7 +38,7 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 	HufACLd db 162 DUP (?)				; Huffman Tables for AC values of the light intensity (data)
 	HufACCl db 16 DUP (?)				; Huffman Tables for AC values of the chrominance (lengths)
 	HufACCd db 162 DUP (?)			; Huffman Tables for AC values of the chrominance (data)
-	Raw db 200 DUP (?)				; Raw BITstream ; TODO size terug veranderen -> nu krijgen we error dat memory segment groter is als 64k
+	Raw db 60000 DUP (?)				; Raw BITstream ; TODO size terug veranderen -> nu krijgen we error dat memory segment groter is als 64k
 	; Define place for code values
 	; HcodeACL dw 162 dup (?)
 	; HcodeACC dw 162 dup (?)
@@ -67,10 +67,6 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 main:
 	mov	ax, @DATA
 	mov	ds, ax
-	
-	call readJPG
-
-	call shiftColors
 		
 	call IDCTT
 	
@@ -81,9 +77,6 @@ main:
 	; call expansionHT
 	
 	;call entropyDecoding
-
-	
-	call showImage
 	
 	; Exit to DOS
 	mov	ax, 4c00h

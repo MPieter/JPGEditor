@@ -58,6 +58,18 @@ IDCTT PROC FAR
 	ret 0
 IDCTT ENDP
 
+TransposeTest PROC FAR
+	push bp
+	mov bp, sp
+	
+	; Initialize data segment
+	call initializeDCTCoeff
+	
+	mov sp, bp
+	pop bp
+	ret 0
+TransposeTest ENDP
+
 initializeDCTCoeff PROC NEAR
 	push bp
 	mov bp, sp

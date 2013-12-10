@@ -720,13 +720,13 @@ ArraySAR ENDP
 ; Argument 2 = offset of input matrix
 ; Argument 3 = segment of output matrix
 ; Argument 4 = offset of output matrix
-MatrixTranspose PROC NEAR
+MatrixTranspose PROC FAR
 	push bp
 	mov bp, sp
 
-	mov ds, [bp + 4][6] ; First Argument
-	mov si, [bp + 4][4] ; Second argument
-	mov es, [bp + 4][2] ; Third Argument
+	mov ds, [bp + 6][6] ; First Argument
+	mov si, [bp + 6][4] ; Second argument
+	mov es, [bp + 6][2] ; Third Argument
 	; mov di, [bp + 4][0] ; Last Argument -> overbodige instructie, moet toch elke keer in de for-loop gebeuren
 	mov cx, 0
 	
@@ -747,7 +747,7 @@ MatrixTranspose PROC NEAR
 	mov dx, ax
 	pop ax ; restore register ax
 	add ax, dx
-	mov di, [bp + 4][0]
+	mov di, [bp + 6][0]
 	add di, ax ; calculate offset address
 	movsw
 	
