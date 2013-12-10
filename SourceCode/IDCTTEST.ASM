@@ -1,6 +1,7 @@
 .MODEL large
 
 include IDCT.INC
+include IDCTTEST.INC
 include HELPERS.INC
 
 .DATA
@@ -47,7 +48,7 @@ IDCTTEST PROC FAR
 @@:
 	lodsw
 	push ax
-	call printints
+	call PrintNumber
 	loop @B
 	
 	mov sp, bp

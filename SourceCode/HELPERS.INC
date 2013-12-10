@@ -1,3 +1,2 @@
 
-
-externdef printints:FAR
+externdef PrintNumber:FAR

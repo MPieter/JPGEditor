@@ -15,45 +15,45 @@ expansionHT PROC FAR
 	push bp
 	mov bp, sp
 	
-	mov ax, seg HufACLl
-	push ax
-	mov ax, seg HcodeACL
-	push ax
-	mov si, offset HufACLl
-	push si
-	mov di, offset HcodeACL
-	push di
-	call generateHcode
+	;mov ax, seg HufACLl
+	; push ax
+	; mov ax, seg HcodeACL
+	; push ax
+	; mov si, offset HufACLl
+	; push si
+	; mov di, offset HcodeACL
+	;push di
+	; call generateHcode
 	
-		mov ax, seg HufACCl
-	push ax
-	mov ax, seg HcodeACC
-	push ax
-	mov si, offset HufACCl
-	push si
-	mov di, offset HcodeACC
-	push di
-	call generateHcode
+	; mov ax, seg HufACCl
+	; push ax
+	; mov ax, seg HcodeACC
+	; push ax
+	; mov si, offset HufACCl
+	; push si
+	; mov di, offset HcodeACC
+	; push di
+	; call generateHcode
 	
-	mov ax, seg HufDCLl
-	push ax
-	mov ax, seg HcodeDCL
-	push ax
-	mov si, offset HufDCLl
-	push si
-	mov di, offset HcodeDCL
-	push di
-	call generateHcode
+	; mov ax, seg HufDCLl
+	; push ax
+	; mov ax, seg HcodeDCL
+	; push ax
+	; mov si, offset HufDCLl
+	; push si
+	; mov di, offset HcodeDCL
+	; push di
+	; call generateHcode
 
-	mov ax, seg HufDCCl
-	push ax
-	mov ax, seg HcodeDCC
-	push ax
-	mov si, offset HufDCCl
-	push si
-	mov di, offset HcodeDCC
-	push di
-	call generateHcode
+	; mov ax, seg HufDCCl
+	; push ax
+	; mov ax, seg HcodeDCC
+	; push ax
+	; mov si, offset HufDCCl
+	; push si
+	; mov di, offset HcodeDCC
+	; push di
+	; call generateHcode
 	
 	; mov si, 0
 	; mov di, 0

@@ -15,7 +15,7 @@ void transpose (std::vector<int>* input, std::vector<int>* output) {
 	}
 
 	// Shorter version
-	for (int i = 0; i < 64; i++) {
+	for (int i = 63; i >= 0; i--) {
 		output[(i % 8)*8 + i / 8] = input[i];
 	}
 }
