@@ -37,19 +37,22 @@ PUBLIC HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, Raw, BESTANDSNAAM
 	HufACCd db 162 DUP (?)				; Huffman Tables for AC values of the chrominance (data)
 	Raw db 60000 DUP (?)				; Raw BITstream
 	; Define place for code values
-	HcodeACL dw 162 dup (?)
-	HcodeACC dw 162 dup (?)
-	HcodeDCL dw 162 dup (?)
-	HcodeDCC dw 162 dup (?)
+	; HcodeACL dw 162 dup (?)
+	; HcodeACC dw 162 dup (?)
+	; HcodeDCL dw 162 dup (?)
+	; HcodeDCC dw 162 dup (?)
 	BESTANDSNAAM	DB "Test32~1.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
 											; The name have to be maximum 8 chars long.	
 ;------ DATA used among other in IDCT.ASM
 public inputIDCT, outputIDCT
-	inputIDCT DW 64 dup (?)
+	inputIDCT dw 64 dup (?)
 	outputIDCT db 64 dup (?)
 		
-.FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
-	palette			db 768 dup(0)
+.FARDATA?
+	; palette			db 768 dup(0)
+	; Y-canal			db 
+	; Cr-canal
+	; Cb-canal
 	screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
 
 .CODE        ; code segment
