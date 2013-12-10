@@ -1,5 +1,7 @@
 .MODEL large
 
+include SHOW.INC
+
 .CODE
 
 showImage PROC FAR

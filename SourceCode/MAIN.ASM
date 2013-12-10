@@ -40,28 +40,19 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 	HufACCd db 162 DUP (?)			; Huffman Tables for AC values of the chrominance (data)
 	Raw db 200 DUP (?)				; Raw BITstream ; TODO size terug veranderen -> nu krijgen we error dat memory segment groter is als 64k
 	; Define place for code values
-<<<<<<< HEAD
 	; HcodeACL dw 162 dup (?)
 	; HcodeACC dw 162 dup (?)
 	; HcodeDCL dw 162 dup (?)
-=======
 	;HcodeACL dw 162 dup (?)
 	; HcodeACC dw 162 dup (?)
 	;HcodeDCL dw 162 dup (?)
->>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
 	; HcodeDCC dw 162 dup (?)
 	BESTANDSNAAM	DB "Test32~1.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
 											; The name have to be maximum 8 chars long.	
 ;------ DATA used among other in IDCT.ASM
-<<<<<<< HEAD
-public inputIDCT, outputIDCT
-	inputIDCT dw 64 dup (?)
-	outputIDCT db 64 dup (?)
-=======
 ; public inputIDCT, outputIDCT
 	; inputIDCT DW 64 dup (?)
 	; outputIDCT db 64 dup (?)
->>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
 		
 .FARDATA?
 	; palette			db 768 dup(0)
@@ -76,8 +67,14 @@ public inputIDCT, outputIDCT
 main:
 	mov	ax, @DATA
 	mov	ds, ax
+	
+	call readJPG
 
+	call shiftColors
+		
 	call IDCTT
+	
+
 	
 	; call readJPG
 	
@@ -86,7 +83,7 @@ main:
 	;call entropyDecoding
 
 	
-	; call showImage
+	call showImage
 	
 	; Exit to DOS
 	mov	ax, 4c00h

@@ -16,6 +16,8 @@ include HELPERS.INC
 	; 				dw -1, 0, -1, -5, -1, 0, 0, 1
 	
 	subimage dw 64 dup(?)
+	
+	
 .CODE
 
 ; Test code for the IDCT.ASM

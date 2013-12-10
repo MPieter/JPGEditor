@@ -1,6 +1,7 @@
 .MODEL large
 
 include IDCT.INC
+include IDCTT.INC
 
 ; Constants
 blockDim equ 8

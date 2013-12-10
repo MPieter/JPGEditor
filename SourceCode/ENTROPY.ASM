@@ -12,7 +12,7 @@ Hufd dw 0
 Hufl dw 0
 Hcode dw 0
 HufDCd dw 0
-HufDCl dw 0
+HufDCl dw 0s
 HcodeDC dw 0
 
 PreviousDC dw 0
@@ -27,10 +27,6 @@ PreviousDCCb dw 0
 entropyDecoding PROC FAR
 	push bp
 	mov bp, sp
-	
-<<<<<<< HEAD
-
-=======
 	
 ; NEXTMDU: ; One MDU is in our case (Color Space defined by YUV= 4:2:0):
 			; ; A 16x16 pixels-block
@@ -103,16 +99,11 @@ entropyDecoding PROC FAR
 	; mov ax, [PreviousDC]
 	; mov [PreviousDCCr], ax
 	
->>>>>>> e6b6d2fb660c74eb81d54719553e5080c3ea0535
 	mov sp, bp
 	pop bp
 	ret 0
 entropyDecoding ENDP
-<<<<<<< HEAD
 
-
-
-=======
 ; ; -----------------------------------------------------------
 ; findCode PROC NEAR
 	; push bp
@@ -249,48 +240,47 @@ entropyDecoding ENDP
 	; ret
 ; findCode ENDP
 ; -----------------------------------------------------------
-MakeCalibratedWord PROC NEAR ; This function make a shifted word: it takes 3 bytes and a shift and makes from that a word in AX (also put in CalibratedWord).
-	push bp
-	mov bp, sp
-	push	cx
-	push	dx
-	push	si
+; MakeCalibratedWord PROC NEAR ; This function make a shifted word: it takes 3 bytes and a shift and makes from that a word in AX (also put in CalibratedWord).
+	; push bp
+	; mov bp, sp
+	; push	cx
+	; push	dx
+	; push	si
 	
-	mov cl, [shift]	; Nbr of times we have to shift
-	mov si, [index]	; address of the byte we have to shift
-				; if the shift is bigger than 7, we will inc si (byte of Raw we are reading)
-		OK?:
-			cmp cl, 8
-			jb	shiftOK
-			inc si
-			sub cl, 8
-			jmp OK?
-		shiftOK:
+	; mov cl, [shift]	; Nbr of times we have to shift
+	; mov si, [index]	; address of the byte we have to shift
+				; ; if the shift is bigger than 7, we will inc si (byte of Raw we are reading)
+		; OK?:
+			; cmp cl, 8
+			; jb	shiftOK
+			; inc si
+			; sub cl, 8
+			; jmp OK?
+		; shiftOK:
 		
-		mov ah, [si]	; Load the first byte
-		sal ah, cl		; The cl most significant bits (msb) of ah are written.
-		mov dl, [si][1]	; Load the second byte
-		sar dl, cl
-		add ah, bl		; The other bits of ah are also written.
+		; mov ah, [si]	; Load the first byte
+		; sal ah, cl		; The cl most significant bits (msb) of ah are written.
+		; mov dl, [si][1]	; Load the second byte
+		; sar dl, cl
+		; add ah, bl		; The other bits of ah are also written.
 		
-		mov al, [si][1]	; The cl most significant bits (msb) of al are written.
-		sal al, cl
-		mov bl, [si][2]
-		sar bl, cl
-		add al, bl		; The other bits of al are also written.
+		; mov al, [si][1]	; The cl most significant bits (msb) of al are written.
+		; sal al, cl
+		; mov bl, [si][2]
+		; sar bl, cl
+		; add al, bl		; The other bits of al are also written.
 		
-	mov [shift], cl
-	mov [index], si
+	; mov [shift], cl
+	; mov [index], si
 	
-	mov [CalibratedWord], ax; Output of makeCalibratedWord
+	; mov [CalibratedWord], ax; Output of makeCalibratedWord
 	
-	pop		si
-	pop		dx
-	pop		cx
-	mov sp, bp
-	pop bp
-	ret
-MakeCalibratedWord ENDP
->>>>>>> e6b6d2fb660c74eb81d54719553e5080c3ea0535
+	; pop		si
+	; pop		dx
+	; pop		cx
+	; mov sp, bp
+	; pop bp
+	; ret
+; MakeCalibratedWord ENDP
 
 END

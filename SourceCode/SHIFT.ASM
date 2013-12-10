@@ -1,5 +1,7 @@
 .MODEL large
 
+include SHIFT.INC
+
 .CODE
 
 shiftColors PROC FAR
