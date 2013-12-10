@@ -1,0 +1,2 @@
+
+externdef PrintNumber:FAR
