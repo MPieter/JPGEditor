@@ -8,6 +8,8 @@ shiftColors PROC FAR
 	push bp
 	mov bp, sp
 	
+	
+	
 	mov sp, bp
 	pop bp
 	ret 0

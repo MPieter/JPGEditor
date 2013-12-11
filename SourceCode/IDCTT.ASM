@@ -17,6 +17,9 @@ include HELPERS.INC
 	
 	subimage dw 64 dup(?)
 	
+	msgInitialized db 'Data is initialized$'
+	msgTransposeStart db 'Beginning Transpose$'
+	msgData db 'The data:$'
 	
 .CODE
 
@@ -41,17 +44,7 @@ IDCTT PROC FAR
 	push ax
 	call iDCT
 	
-	; Print result
-	mov ax, seg subimage
-	mov ds, ax
-	mov si, offset subimage
-	; xor df, df ; TODO is this really necessary ? 
-	mov cx, 64
-@@:
-	lodsw
-	push ax
-	call PrintNumber
-	loop @B
+	call PrintDataSegment
 	
 	mov sp, bp
 	pop bp
@@ -61,14 +54,79 @@ IDCTT ENDP
 TransposeTest PROC FAR
 	push bp
 	mov bp, sp
-	
+		
 	; Initialize data segment
 	call initializeDCTCoeff
+	
+	mov ax, offset msgInitialized
+	push ax
+	call PrintString
+	
+	; Print the data
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	call PrintDataSegment
+	
+	mov ax, offset msgTransposeStart
+	push ax
+	call PrintString
+	
+	; calculate Transpose 
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	mov ax, seg subimage
+	push ax
+	mov ax, offset subimage
+	push ax
+	call MatrixTranspose
+	
+	; Print the result
+	mov ax, seg subimage
+	push ax
+	mov ax, offset subimage
+	push ax
+	call PrintDataSegment
 	
 	mov sp, bp
 	pop bp
 	ret 0
 TransposeTest ENDP
+
+; Prints the value of the data
+; Argument 1 = segment address of data
+; Argument 2 = offset address of current data block in data
+PrintDataSegment PROC NEAR
+	push bp
+	mov bp, sp
+	
+	; Print result
+	mov ax, [bp + 4][2]
+	mov ds, ax
+	mov si, [bp + 4][0]
+	; xor df, df ; TODO is this really necessary ? 
+	mov cx, 64
+	mov bx, 8
+@@:
+	lodsw
+	push ax
+	call PrintNumber
+	call PrintSpace
+	dec bx
+	cmp bx, 0
+	jne ContinueLoop
+	call PrintNewLine
+	mov bx, 8
+ContinueLoop:
+	loop @B
+	
+	mov sp, bp
+	pop bp
+	ret 0
+PrintDataSegment ENDP
 
 initializeDCTCoeff PROC NEAR
 	push bp

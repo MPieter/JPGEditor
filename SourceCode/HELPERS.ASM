@@ -2,7 +2,59 @@
 
 include HELPERS.INC
 
+.DATA
+	msgSpace db ' $'
+	newline db 0dh, 0ah, '$'
+
 .CODE
+
+; Print a string
+; Arguments on the stack:
+; Argument 1 = offset of string
+PrintString PROC FAR
+	push bp
+	mov bp, sp
+	
+	mov	ah, 09h		; select function 09h
+	mov	dx, [bp + 6][0]	; load offset address of msg (in data segment)
+	int	21h		; call DOS, function 09h, print to stdout
+
+    ; Print new line
+	mov ah, 09h
+	mov dx, offset newline
+	int 21h
+
+	mov sp, bp
+	pop bp
+	ret 0
+PrintString ENDP
+
+PrintSpace PROC FAR
+	push bp
+	mov bp, sp
+	
+	mov	ah, 09h		; select function 09h
+	mov	dx, offset msgSpace
+	int	21h		; call DOS, function 09h, print to stdout
+	
+	mov sp, bp
+	pop bp
+	ret 0
+PrintSpace ENDP
+
+PrintNewLine PROC FAR
+	push bp
+	mov bp, sp
+	
+	; Print new line
+	mov ah, 09h
+	mov dx, offset newline
+	int 21h
+	
+	mov sp, bp
+	pop bp
+	ret 0
+PrintNewLine ENDP
 
 ; print a signed integer to stdout
 ; value on stack

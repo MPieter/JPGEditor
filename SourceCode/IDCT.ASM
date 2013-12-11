@@ -738,7 +738,7 @@ MatrixTranspose PROC FAR
 @@:
 	mov ax, cx
 	
-	mov bx, 0
+	mov bx, 8
 	div bx ; result of calculation: AX = DX:AX / Op, rest in DX
 	push ax ; save register ax
 	mov ax, dx
@@ -746,7 +746,7 @@ MatrixTranspose PROC FAR
 	mul dx ; result of calculation: DX:AX = AX*Op
 	mov dx, ax
 	pop ax ; restore register ax
-	add ax, dx
+	add ax, dx ; Dest = Dest+Source
 	mov di, [bp + 6][0]
 	add di, ax ; calculate offset address
 	movsw
@@ -760,7 +760,7 @@ MatrixTranspose PROC FAR
 EndLoop:
 	mov sp, bp
 	pop bp
-	ret 4
+	ret 8
 MatrixTranspose ENDP
 
 

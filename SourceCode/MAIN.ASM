@@ -68,8 +68,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 		
-	call IDCTT
-	
+	call TransposeTest
 
 	
 	; call readJPG
