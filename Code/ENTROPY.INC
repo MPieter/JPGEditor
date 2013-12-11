@@ -1,2 +1,0 @@
-
-externdef entropyDecoding:FAR

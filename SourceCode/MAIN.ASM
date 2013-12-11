@@ -67,10 +67,9 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 main:
 	mov	ax, @DATA
 	mov	ds, ax
-		
-	call TransposeTest
+			
+	call IDCTT
 
-	
 	; call readJPG
 	
 	; call expansionHT

@@ -1,3 +1,6 @@
+; IDCT.ASM
+; -------------
+; Contains Test Code for all the procedures in IDCT.ASM
 .MODEL large
 
 include IDCT.INC
@@ -17,13 +20,22 @@ include HELPERS.INC
 	
 	subimage dw 64 dup(?)
 	
-	msgInitialized db 'Data is initialized$'
-	msgTransposeStart db 'Beginning Transpose$'
+	arrayOne dw 8 dup(0)
+	arrayTwo dw 8 dup(0)
+	arrayThree dw 8 dup(0)
+	
+	; Messages for debugging
 	msgData db 'The data:$'
+	msgTranspose db 'Executing Transpose$'
+	msgIDCT db 'Executing IDCT:$'
+	msgArrayAdd db 'Executing ArrayAdd: $'
+	msgArraySub db 'Executing ArraySub (First array - Second array): $'
+	msgArraySar db 'Executing ArraySAR: $'
+	
 	
 .CODE
 
-; Test code for the IDCT.ASM
+; Test code for the procedure iDCT
 ; Usage: call function on see output in MS-DOS
 ; No arguments on the stack
 IDCTT PROC FAR
@@ -32,6 +44,23 @@ IDCTT PROC FAR
 	
 	; Initialize data segment
 	call initializeDCTCoeff
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	; Print the data
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	mov ax, 64
+	push ax
+	call PrintDataSegment
+	
+	mov ax, offset msgIDCT
+	push ax
+	call PrintString
 	
 	; Do inverse transformation
 	mov ax, seg dctCoeff
@@ -44,6 +73,12 @@ IDCTT PROC FAR
 	push ax
 	call iDCT
 	
+	mov ax, seg subimage
+	push ax
+	mov ax, offset subimage
+	push ax
+	mov ax, 64
+	push ax
 	call PrintDataSegment
 	
 	mov sp, bp
@@ -51,6 +86,8 @@ IDCTT PROC FAR
 	ret 0
 IDCTT ENDP
 
+; Test code for the procedure MatrixTranspose
+; No arguments on the stack
 TransposeTest PROC FAR
 	push bp
 	mov bp, sp
@@ -58,7 +95,7 @@ TransposeTest PROC FAR
 	; Initialize data segment
 	call initializeDCTCoeff
 	
-	mov ax, offset msgInitialized
+	mov ax, offset msgData
 	push ax
 	call PrintString
 	
@@ -67,9 +104,11 @@ TransposeTest PROC FAR
 	push ax
 	mov ax, offset dctCoeff
 	push ax
+	mov ax, 64
+	push ax
 	call PrintDataSegment
 	
-	mov ax, offset msgTransposeStart
+	mov ax, offset msgTranspose
 	push ax
 	call PrintString
 	
@@ -89,6 +128,8 @@ TransposeTest PROC FAR
 	push ax
 	mov ax, offset subimage
 	push ax
+	mov ax, 64
+	push ax
 	call PrintDataSegment
 	
 	mov sp, bp
@@ -96,19 +137,241 @@ TransposeTest PROC FAR
 	ret 0
 TransposeTest ENDP
 
+; Test code for the procedure ArrayADD
+; No arguments on the stack
+ArrayADDTest PROC FAR
+	push bp
+	mov bp, sp
+	
+	; First Array
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	call initializeArray
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	; Second Array
+	mov ax, seg arrayTwo
+	push ax
+	mov ax, offset arrayTwo
+	push ax
+	call initializeArray
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	; Elementwise addition of the two arrays
+	mov ax, offset msgArrayAdd
+	push ax
+	call PrintString
+	
+	; set ds and es for procedure ArrayADD
+	mov ax, seg arrayOne
+	mov es, ax
+	mov ds, ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, offset arrayTwo
+	push ax
+	mov ax, offset arrayThree
+	push ax
+	call ArrayADD
+	
+	
+	mov ax, seg arrayThree
+	push ax
+	mov ax, offset arrayThree
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	
+	mov sp, bp
+	pop bp
+	ret 0
+ArrayADDTest ENDP
+
+; Test code for the procedure ArraySUB
+; No arguments on the stack
+ArraySUBTest PROC FAR
+	push bp
+	mov bp, sp
+	
+	; First Array (usage of arrayADD method for having not the same 2 arrays)
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	call initializeArray
+	
+	; set ds and es for procedure ArrayADD
+	mov ax, seg arrayOne
+	mov es, ax
+	mov ds, ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, offset arrayTwo
+	push ax
+	call ArrayADD
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	mov ax, seg arrayTwo
+	push ax
+	mov ax, offset arrayTwo
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	; Second Array
+	mov ax, seg arrayThree
+	push ax
+	mov ax, offset arrayThree
+	push ax
+	call initializeArray
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	mov ax, seg arrayThree
+	push ax
+	mov ax, offset arrayThree
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	; Elementwise substraction of the two arrays
+	mov ax, offset msgArraySub
+	push ax
+	call PrintString
+	
+	; set ds and es for procedure ArraySUB
+	mov ax, seg arrayOne
+	mov es, ax
+	mov ds, ax
+	mov ax, offset arrayTwo
+	push ax
+	mov ax, offset arrayThree
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	call ArraySUB
+	
+	
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	mov sp, bp
+	pop bp
+	ret 0
+ArraySUBTest ENDP
+
+; Test code for the procedure ArraySAR
+; Executes a division by two
+; No arguments on the stack
+ArraySARTest PROC FAR
+	push bp
+	mov bp, sp
+	
+	; First Array
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	call initializeArray
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	mov ax, seg arrayOne
+	push ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	; Elementwise SAR of the array
+	mov ax, offset msgArraySar
+	push ax
+	call PrintString
+	
+	; set ds and es for procedure ArrayADD
+	mov ax, seg arrayOne
+	mov es, ax
+	mov ds, ax
+	mov ax, offset arrayOne
+	push ax
+	mov ax, 1 ; Division by two
+	push ax
+	mov ax, offset arrayTwo
+	push ax
+	call ArraySAR
+	
+	
+	mov ax, seg arrayTwo
+	push ax
+	mov ax, offset arrayTwo
+	push ax
+	mov ax, 8
+	push ax
+	call PrintDataSegment
+	
+	mov sp, bp
+	pop bp
+	ret 0
+ArraySARTest ENDP
+
 ; Prints the value of the data
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of current data block in data
+; Argument 3 = data length
+; Note: inserts automatically a new line after 8 values
 PrintDataSegment PROC NEAR
 	push bp
 	mov bp, sp
 	
 	; Print result
-	mov ax, [bp + 4][2]
+	mov ax, [bp + 4][4]
 	mov ds, ax
-	mov si, [bp + 4][0]
+	mov si, [bp + 4][2]
 	; xor df, df ; TODO is this really necessary ? 
-	mov cx, 64
+	mov cx, [bp + 4][0]
 	mov bx, 8
 @@:
 	lodsw
@@ -128,6 +391,42 @@ ContinueLoop:
 	ret 0
 PrintDataSegment ENDP
 
+; Initializes an array of length 8 with data
+; Arguments on the stack:
+; Argument 1 = segment address of array
+; Argument 2 = offset address of array
+initializeArray PROC NEAR
+	push bp
+	mov bp, sp
+	
+	mov ax, [bp + 4][2]
+	mov es, ax
+	mov di, [bp + 4][0]
+	
+	mov ax, -415
+	stosw
+	mov ax, -26
+	stosw
+	mov ax, -58
+	stosw
+	mov ax, 33
+	stosw
+	mov ax, 56
+	stosw
+	mov ax, -24
+	stosw
+	mov ax, -2
+	stosw
+	mov ax, 0
+	stosw
+	
+	mov sp, bp
+	pop bp
+	ret 0
+initializeArray ENDP
+
+; Initializes the data in data "dctCoeff" with dummy data 
+; No arguments on the stack
 initializeDCTCoeff PROC NEAR
 	push bp
 	mov bp, sp

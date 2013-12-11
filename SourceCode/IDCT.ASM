@@ -1,7 +1,6 @@
 .MODEL large
 
 include IDCT.INC
-include IDCTT.INC
 
 ; Constants
 blockDim equ 8
@@ -109,7 +108,7 @@ iDCT ENDP
 ; Calculates the bink inverse discrete cosine transform of one block.
 ; Arguments on the stack: 
 ; Argument 1 = segment address of data
-; Argument 2 = offset address of current data block in data
+; Argument 2 = offset address of data
 ; Argument 3 = segment address for output
 ; Argument 4 = offset address for output
 iDCT_Bink PROC NEAR
@@ -629,28 +628,31 @@ iDCT_Bink ENDP
 ; Calculates the result of a elemtwise addition of two arrays for length 8
 ; Arguments on the stack: 
 ; Argument 1 = offset address of first operand array
-; Argument 2 = o ffset address of second operand array
+; Argument 2 = offset address of second operand array
 ; Argument 3 = offset address of result array
 ; Note: all offset addresses are supposed to be in het current data segment and ds and es are already set to the correct segment
-ArrayADD PROC NEAR
+ArrayADD PROC FAR
 	push bp
 	mov bp, sp
 	
 	; calculate C = A + B
-	mov di, [bp + 4][0] ; last argument: offset result array
+	mov di, [bp + 6][0] ; last argument: offset result array
 	mov cx, 8
-	mov bx, 0
+	mov bx, 0 ; contains the index of the current element in the array (offset in bytes, array in words)
 @@:
-	mov si, [bp + 4][4] ; first argument: offset first array
+	mov si, [bp + 6][4] ; first argument: offset first array
 	add si, bx
 	lodsw
-	mov bx, ax
-	mov si, [bp + 4][2] ; second argument: offset second array
+	push ax ; save element of first array on the stack
+	
+	mov si, [bp + 6][2] ; second argument: offset second array
 	add si, bx
 	lodsw
-	add ax, bx
+	pop dx
+	add ax, dx
 	stosw ; store result of ax in es:di and increments di
 	inc bx
+	inc bx ; increment one word, so 2 bytes
 	loop @B
 	
 	mov sp, bp
@@ -663,31 +665,34 @@ ArrayADD ENDP
 ; Argument 1 = offset address of first operand array
 ; Argument 2 = offset address of second operand array
 ; Argument 3 = offset address of result array
+; Result Array = First Array - Second Array
 ; Note: all offset addresses are supposed to be in het current data segment and ds and es are already set to the same correct segment
-ArraySUB PROC NEAR
+ArraySUB PROC FAR
 	push bp
 	mov bp, sp
 	
-	; calculate C = A - B
-	mov di, [bp + 4][0] ; last argument: offset result array
+	mov di, [bp + 6][0] ; last argument: offset result array
 	mov cx, 8
-	mov bx, 0
+	mov bx, 0 ; contains the index of the current element in the array (offset in bytes, array in words)
 @@:
-	mov si, [bp + 4][4] ; first argument: offset first array
+	mov si, [bp + 6][2] ; first argument: offset second array
 	add si, bx
 	lodsw
-	mov bx, ax
-	mov si, [bp + 4][2] ; second argument: offset second array
+	push ax ; save element of first array on the stack
+	
+	mov si, [bp + 6][4] ; second argument: offset first array
 	add si, bx
 	lodsw
-	sub ax, bx
+	pop dx
+	sub ax, dx
 	stosw ; store result of ax in es:di and increments di
 	inc bx
+	inc bx ; increment one word, so 2 bytes
 	loop @B
 	
 	mov sp, bp
 	pop bp
-	ret 6
+	ret 6 
 ArraySUB ENDP
 
 ; Calculates the result of a elemtwise SAR of an array of length 8
@@ -696,19 +701,24 @@ ArraySUB ENDP
 ; Argument 2 = Total number of bit shifts (> 0)
 ; Argument 3 = offset address of result array
 ; Note: all offset addresses are supposed to be in het current data segment and ds and es are already set to the same correct segment
-ArraySAR PROC NEAR
+ArraySAR PROC FAR
 	push bp
 	mov bp, sp
 	
-	mov si, [bp + 4][4]
-	mov di, [bp + 4][0]
-@@:
+	mov si, [bp + 6][4]
+	mov di, [bp + 6][0]
+	mov cl, [bp + 6][2]
+	mov ch, 8
+ForLoop:
 	lodsw
-	mov cl, [bp + 4][2]
 	sar ax, cl ; quantity has to be specificied in cl
 	stosw
-	loop @B
-	
+	dec ch
+	cmp ch, 0
+	je EndForLoop
+	jmp ForLoop
+
+EndForLoop:
 	mov sp, bp
 	pop bp
 	ret 6
@@ -734,8 +744,9 @@ MatrixTranspose PROC FAR
 	;	for (int i = 0; i < 64; i++) {
 	;	output[(i % 8)*8 + i / 8] = input[i];
 	;}
-	xor dx,dx
+
 @@:
+	xor dx,dx
 	mov ax, cx
 	
 	mov bx, 8
@@ -746,7 +757,9 @@ MatrixTranspose PROC FAR
 	mul dx ; result of calculation: DX:AX = AX*Op
 	mov dx, ax
 	pop ax ; restore register ax
-	add ax, dx ; Dest = Dest+Source
+	add ax, dx ; Dest = Dest + Source
+	mov dx, 2
+	mul dx ; result of calculation: DX:AX = AX*Op -> because data are words (2x bytes)
 	mov di, [bp + 6][0]
 	add di, ax ; calculate offset address
 	movsw
