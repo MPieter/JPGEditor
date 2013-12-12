@@ -146,8 +146,7 @@ findCode PROC NEAR
 					jmp nextCodeDC
 	DecodeDCvalue:
 			mov al, HufDCd[si][cx]
-			mov cl, 4
-			sal al, cl	; the length of the non-zero value is given by the 4 least significant bits of the symbol
+			
 			mov dh, al	; put al in security cause ax will be the output of MakeCalibratedWord
 			mov dl, [shift]
 			add dl, bh	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bh) )
