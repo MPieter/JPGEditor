@@ -1,2 +1,0 @@
-
-externdef IDCTTEST:FAR

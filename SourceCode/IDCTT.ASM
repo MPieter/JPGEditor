@@ -1,7 +1,7 @@
 .MODEL large
 
 include IDCT.INC
-include IDCTTEST.INC
+include IDCTT.INC
 include HELPERS.INC
 
 .DATA
@@ -21,7 +21,7 @@ include HELPERS.INC
 ; Test code for the IDCT.ASM
 ; Usage: call function on see output in MS-DOS
 ; No arguments on the stack
-IDCTTEST PROC FAR
+IDCTT PROC FAR
 	push bp
 	mov bp, sp
 	
@@ -54,7 +54,7 @@ IDCTTEST PROC FAR
 	mov sp, bp
 	pop bp
 	ret 0
-IDCTTEST ENDP
+IDCTT ENDP
 
 initializeDCTCoeff PROC NEAR
 	push bp
