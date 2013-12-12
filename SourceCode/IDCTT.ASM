@@ -1,4 +1,4 @@
-; IDCT.ASM
+; IDCTT.ASM
 ; -------------
 ; Contains Test Code for all the procedures in IDCT.ASM
 .MODEL large
@@ -26,7 +26,7 @@ include HELPERS.INC
 	
 	; Messages for debugging
 	msgData db 'The data:$'
-	msgTranspose db 'Executing Transpose$'
+	msgTranspose db 'Executing Transpose:$'
 	msgIDCT db 'Executing IDCT:$'
 	msgArrayAdd db 'Executing ArrayAdd: $'
 	msgArraySub db 'Executing ArraySub (First array - Second array): $'
@@ -43,7 +43,11 @@ IDCTT PROC FAR
 	mov bp, sp
 	
 	; Initialize data segment
-	call initializeDCTCoeff
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	call initializeMatrix
 	
 	mov ax, offset msgData
 	push ax
@@ -93,7 +97,11 @@ TransposeTest PROC FAR
 	mov bp, sp
 		
 	; Initialize data segment
-	call initializeDCTCoeff
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	call initializeMatrix
 	
 	mov ax, offset msgData
 	push ax
@@ -356,225 +364,5 @@ ArraySARTest PROC FAR
 	pop bp
 	ret 0
 ArraySARTest ENDP
-
-; Prints the value of the data
-; Argument 1 = segment address of data
-; Argument 2 = offset address of current data block in data
-; Argument 3 = data length
-; Note: inserts automatically a new line after 8 values
-PrintDataSegment PROC NEAR
-	push bp
-	mov bp, sp
-	
-	; Print result
-	mov ax, [bp + 4][4]
-	mov ds, ax
-	mov si, [bp + 4][2]
-	; xor df, df ; TODO is this really necessary ? 
-	mov cx, [bp + 4][0]
-	mov bx, 8
-@@:
-	lodsw
-	push ax
-	call PrintNumber
-	call PrintSpace
-	dec bx
-	cmp bx, 0
-	jne ContinueLoop
-	call PrintNewLine
-	mov bx, 8
-ContinueLoop:
-	loop @B
-	
-	mov sp, bp
-	pop bp
-	ret 0
-PrintDataSegment ENDP
-
-; Initializes an array of length 8 with data
-; Arguments on the stack:
-; Argument 1 = segment address of array
-; Argument 2 = offset address of array
-initializeArray PROC NEAR
-	push bp
-	mov bp, sp
-	
-	mov ax, [bp + 4][2]
-	mov es, ax
-	mov di, [bp + 4][0]
-	
-	mov ax, -415
-	stosw
-	mov ax, -26
-	stosw
-	mov ax, -58
-	stosw
-	mov ax, 33
-	stosw
-	mov ax, 56
-	stosw
-	mov ax, -24
-	stosw
-	mov ax, -2
-	stosw
-	mov ax, 0
-	stosw
-	
-	mov sp, bp
-	pop bp
-	ret 0
-initializeArray ENDP
-
-; Initializes the data in data "dctCoeff" with dummy data 
-; No arguments on the stack
-initializeDCTCoeff PROC NEAR
-	push bp
-	mov bp, sp
-	
-	mov ax, seg dctCoeff
-	mov es, ax
-	mov di, offset dctCoeff
-	
-	; Row
-	mov ax, -415
-	stosw
-	mov ax, -26
-	stosw
-	mov ax, -58
-	stosw
-	mov ax, 33
-	stosw
-	mov ax, 56
-	stosw
-	mov ax, -24
-	stosw
-	mov ax, -2
-	stosw
-	mov ax, 0
-	stosw
-	; Row
-	mov ax, 4
-	stosw
-	mov ax, -16
-	stosw
-	mov ax, -50
-	stosw
-	mov ax, 11
-	stosw
-	mov ax, 11
-	stosw
-	mov ax, -7
-	stosw
-	mov ax, -6
-	stosw
-	mov ax, 4
-	stosw
-	; Row
-	mov ax, -45
-	stosw
-	mov ax, 6
-	stosw
-	mov ax, 70
-	stosw
-	mov ax, -28
-	stosw
-	mov ax, -28
-	stosw
-	mov ax, 11
-	stosw
-	mov ax, 4
-	stosw
-	mov ax, -5
-	stosw
-	; Row
-	mov ax, -59
-	stosw
-	mov ax, 13
-	stosw
-	mov ax, 39
-	stosw
-	mov ax, -21
-	stosw
-	mov ax, -12
-	stosw
-	mov ax, 9
-	stosw
-	mov ax, 2
-	stosw
-	mov ax, 2
-	stosw
-	; Row
-	mov ax, 12
-	stosw
-	mov ax, -6
-	stosw
-	mov ax, -13
-	stosw
-	mov ax, -5
-	stosw
-	mov ax, -2
-	stosw
-	mov ax, 2
-	stosw
-	mov ax, -3
-	stosw
-	mov ax, 3
-	stosw
-	; Row
-	mov ax, -10
-	stosw
-	mov ax, 3
-	stosw
-	mov ax, 3
-	stosw
-	mov ax, -9
-	stosw
-	mov ax, -3
-	stosw
-	mov ax, 1
-	stosw
-	mov ax, 5
-	stosw
-	mov ax, 2
-	stosw
-	; Row
-	mov ax, 0
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, -2
-	stosw
-	mov ax, -1
-	stosw
-	mov ax, -4
-	stosw
-	mov ax, 4
-	stosw
-	mov ax, -1
-	stosw
-	; Row
-	mov ax, -1
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, -1
-	stosw
-	mov ax, -5
-	stosw
-	mov ax, -1
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, 1
-	stosw
-	
-	mov sp, bp
-	pop bp
-	ret 0
-initializeDCTCoeff ENDP
 
 END

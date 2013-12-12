@@ -49,7 +49,7 @@ blockEl equ 64
 	
 .CODE
 
-; Calculates the inverse discrete cosine transform. 
+; Calculates the inverse discrete cosine transform of an 8x8 matrix
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data

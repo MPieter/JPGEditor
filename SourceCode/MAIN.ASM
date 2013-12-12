@@ -5,6 +5,7 @@ include READ.INC
 include EXPANSHT.INC
 include ENTROPY.INC
 include QUANT.INC
+include QUANTT.INC
 include IDCT.INC
 include IDCTT.INC
 include SHIFT.INC
@@ -68,7 +69,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 			
-	call IDCTT
+	call DequantizationTest
 
 	; call readJPG
 	
