@@ -119,22 +119,24 @@ findCode PROC NEAR
 	
 	call MakeCalibratedWord	; CalibratedWord is up to date
 	
-	xor di, di	; di will be used for counting the number of time we write a word in the output matrix (have to increase to 64)
-	xor bx, bx	; bh will run over the number of codes there is for each possible length (ex: if there is no code of length 1 bit--> HufXXXl[bh]=0 with bh=0)
+	xor di, di	; di will be used for counting the number of time we write a word in the output matrix (have to increase until 64)
+	xor bx, bx	; bx will run over the number of codes there is for each possible code length (ex: if there is no code of length 1 bit--> HufXXXl[bx]=0 with bx=0)
 	xor si, si	; si gives the number of codes in Hcode we have to jump over because they don't have the good length.
-	xor cx, cx	; cl runs about the codes of one length, but is also later use for shift-functions (cl and 1 are the only admitted parameters)
+	xor cx, cx	; cx runs about the codes of one length, but is also later use for shift-functions (cl and 1 are the only admitted parameters)
 	
 	; -- First word: the DC-value
 	jmp nextLengthDC
 	nextLengthAgainDC:
-		add si, HufDCL[bh]
-		inc bh
+		xor ah, ah
+		mov al, [HufDCl][bx]
+		add si, ax
+		inc bx
 		nextLengthDC:
 			mov ax, [CalibratedWord]
 			mov cl, 15
-			sub cl, bh
-			sar ax, cl	; shift ax so that only the bh first bit are compared with the codes tasie.
-			mov cl, HufDCL[bh]
+			sub cl, bl
+			sar ax, cl	; shift ax so that only the bl first bit are compared with the codes tasie.
+			mov cl, HufDCl[bx]
 			cmp cl, 0
 			je	nextLengthAgainDC
 				nextCodeDC:
@@ -146,10 +148,11 @@ findCode PROC NEAR
 					jmp nextCodeDC
 	DecodeDCvalue:
 			mov al, HufDCd[si][cx]
-			
+			mov cl, 4
+			sal al, cl	; the length of the non-zero value is given by the 4 least significant bits of the symbol
 			mov dh, al	; put al in security cause ax will be the output of MakeCalibratedWord
 			mov dl, [shift]
-			add dl, bh	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bh) )
+			add dl, bl	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bx) )
 			mov [shift], dl
 			call MakeCalibratedWord
 			; we are only interessed in the number formed by the dh (=length of the non-zero value) most significant bits.
@@ -189,7 +192,7 @@ findCode PROC NEAR
 			sal al, cl	; the length of the non-zero value is given by the 4 least significant bits of the symbol
 			mov dh ,al	; put al in security cause ax will be the output of MakeCalibratedWord
 			mov dl, [shift]
-			add dl, bh	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bh) )
+			add dl, bl	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bx) )
 			mov [shift], dl
 			call MakeCalibratedWord
 			; we are only interessed in the number formed by the dh (=length of the non-zero value) most significant bits.
@@ -210,14 +213,16 @@ findCode PROC NEAR
 		je DONE
 		jmp nextLength
 		nextLengthAgain:
-		add si, Hufl[bh]
-		inc bh
+		xor ah, ah
+		mov al, HufDCl[bx]
+		add si, ax
+		inc bx
 		nextLength:
 			mov ax, [CalibratedWord]
 			mov cl, 15
-			sub cl, bh
-			sar ax, cl	; shift ax so that only the bh first bit are compared with the codes tasie.
-			mov cl, Hufl[bh]
+			sub cl, bl
+			sar ax, cl	; shift ax so that only the bl first bit are compared with the codes tasie.
+			mov cl, Hufl[bx]
 			cmp cl, 0
 			je	nextLengthAgain
 				nextCode:
