@@ -49,10 +49,10 @@ Yblock:
 	call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
 	mov ax, offset inputIDCT
 	push ax	; gives the address of the tabel to use for the dequantization
-	call Dequantization ; this matrix will be dequantized
+	;call Dequantization ; this matrix will be dequantized
 	mov ax, offset inputIDCT
 	push ax	; gives the tabel to use for the dequantization
-	call iDCT	; Then we applied the iDCT on the output of Dequantization
+	;call iDCT	; Then we applied the iDCT on the output of Dequantization
 	;; TODO : Replace the output in memory (FARDATA ? )
 	jnz	Yblock
 	mov ax, [PreviousDC]
@@ -74,10 +74,10 @@ Cbblock:
 	call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
 	mov ax, offset inputIDCT
 	push ax	; gives the address of the tabel to use for the dequantization
-	call Dequantization ; this matrix will be dequantized
+	;call Dequantization ; this matrix will be dequantized
 	mov ax, offset inputIDCT
 	push ax	; gives the tabel to use for the dequantization
-	call iDCT	; Then we applied the iDCT on the output of Dequantization
+	;call iDCT	; Then we applied the iDCT on the output of Dequantization
 	;; TODO : Replace the output in memory (FARDATA ? )
 	jnz	Cbblock	
 	mov ax, [PreviousDC]
@@ -91,10 +91,10 @@ Crblock:
 	call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
 	mov ax, offset inputIDCT
 	push ax	; gives the address of the tabel to use for the dequantization
-	call Dequantization ; this matrix will be dequantized
+	;call Dequantization ; this matrix will be dequantized
 	mov ax, offset inputIDCT
 	push ax	; gives the tabel to use for the dequantization
-	call iDCT	; Then we applied the iDCT on the output of Dequantization
+	;call iDCT	; Then we applied the iDCT on the output of Dequantization
 	;; TODO : Replace the output in memory (FARDATA ? )
 	jnz	Crblock	
 	mov ax, [PreviousDC]
