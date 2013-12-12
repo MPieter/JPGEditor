@@ -6,7 +6,7 @@
 include ENTROPY.INC
 include QUANT.INC
 include IDCT.INC
-include IDCTTEST.INC
+include IDCTT.INC
 include SHIFT.INC
 include SHOW.INC
 include HELPERS.INC
@@ -40,40 +40,16 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 	HufACCd db 162 DUP (?)			; Huffman Tables for AC values of the chrominance (data)
 	Raw db 60000 DUP (?)				; Raw BITstream
 	; Define place for code values
-<<<<<<< HEAD
-<<<<<<< HEAD
-	; HcodeACL dw 162 dup (?)
-	; HcodeACC dw 162 dup (?)
-	; HcodeDCL dw 162 dup (?)
-=======
-	;HcodeACL dw 162 dup (?)
-	; HcodeACC dw 162 dup (?)
-	;HcodeDCL dw 162 dup (?)
->>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
-=======
-	;HcodeACL dw 162 dup (?)
-	; HcodeACC dw 162 dup (?)
-	;HcodeDCL dw 162 dup (?)
->>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
-	; HcodeDCC dw 162 dup (?)
+	HcodeACL dw 162 dup (?)
+	HcodeACC dw 162 dup (?)
+	HcodeDCL dw 162 dup (?)
+
 	BESTANDSNAAM	DB "Test32~1.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
 											; The name have to be maximum 8 chars long.	
 ;------ DATA used among other in IDCT.ASM
-<<<<<<< HEAD
-<<<<<<< HEAD
 public inputIDCT, outputIDCT
 	inputIDCT dw 64 dup (?)
 	outputIDCT db 64 dup (?)
-=======
-; public inputIDCT, outputIDCT
-	; inputIDCT DW 64 dup (?)
-	; outputIDCT db 64 dup (?)
->>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
-=======
-; public inputIDCT, outputIDCT
-	; inputIDCT DW 64 dup (?)
-	; outputIDCT db 64 dup (?)
->>>>>>> 3926a87167a29322a45e97e24a77705ae48c55be
 		
 .FARDATA?
 	; palette			db 768 dup(0)
@@ -89,7 +65,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 
-	call IDCTTEST
+	call IDCTT
 	
 	; call readJPG
 	
