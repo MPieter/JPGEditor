@@ -9,9 +9,9 @@ lengthBlock equ 64; Each block contains 64 values
 
 ; Calculates the dequantization of an 8x8 matrix.
 ; Arguments on the stack:
-; Argument 1 = segment address of data
+; Argument 1 = segment address of data (data segment in words)
 ; Argument 2 = offset address of data
-; Argument 3 = segment address of quantization table
+; Argument 3 = segment address of quantization table (quant. table in bytes)
 ; Argument 4 = offset address of quantization table
 ; The block is modified in its data segment (meaning: source and destination of 
 ; operation are the same).
@@ -25,6 +25,7 @@ Dequantization PROC FAR
 	add si, 64 ; increment with 64 bytes (the size of the quantization table)
 	std ; set direction flag downwards -> lodsb decrements the si register
 	mov cx, 64 ; counter
+	mov ah, 0 ; lodsb puts value in al
 @@:
 	lodsb
 	push ax
@@ -39,11 +40,11 @@ Dequantization PROC FAR
 	mov cx, 64 ; counter
 	
 @@:
-	lodsb
+	lodsw
 	; multiply
 	pop bx ; get the element from the quantization matrix
 	mul bx ; result of calculation: DX:AX = AX*Op
-	stosb
+	stosw
 	loop @B
 
 	mov sp, bp

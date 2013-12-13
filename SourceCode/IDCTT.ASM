@@ -47,7 +47,7 @@ IDCTT PROC FAR
 	push ax
 	mov ax, offset dctCoeff
 	push ax
-	call initializeMatrix
+	call initializeWordMatrix
 	
 	mov ax, offset msgData
 	push ax
@@ -60,7 +60,7 @@ IDCTT PROC FAR
 	push ax
 	mov ax, 64
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	mov ax, offset msgIDCT
 	push ax
@@ -83,7 +83,7 @@ IDCTT PROC FAR
 	push ax
 	mov ax, 64
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	mov sp, bp
 	pop bp
@@ -101,7 +101,7 @@ TransposeTest PROC FAR
 	push ax
 	mov ax, offset dctCoeff
 	push ax
-	call initializeMatrix
+	call initializeWordMatrix
 	
 	mov ax, offset msgData
 	push ax
@@ -114,7 +114,7 @@ TransposeTest PROC FAR
 	push ax
 	mov ax, 64
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	mov ax, offset msgTranspose
 	push ax
@@ -138,7 +138,7 @@ TransposeTest PROC FAR
 	push ax
 	mov ax, 64
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	mov sp, bp
 	pop bp
@@ -168,7 +168,7 @@ ArrayADDTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	; Second Array
 	mov ax, seg arrayTwo
@@ -187,7 +187,7 @@ ArrayADDTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	; Elementwise addition of the two arrays
 	mov ax, offset msgArrayAdd
@@ -213,7 +213,7 @@ ArrayADDTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	
 	mov sp, bp
@@ -256,7 +256,7 @@ ArraySUBTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	; Second Array
 	mov ax, seg arrayThree
@@ -275,7 +275,7 @@ ArraySUBTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	; Elementwise substraction of the two arrays
 	mov ax, offset msgArraySub
@@ -301,7 +301,7 @@ ArraySUBTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	mov sp, bp
 	pop bp
@@ -332,7 +332,7 @@ ArraySARTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	; Elementwise SAR of the array
 	mov ax, offset msgArraySar
@@ -358,7 +358,7 @@ ArraySARTest PROC FAR
 	push ax
 	mov ax, 8
 	push ax
-	call PrintDataSegment
+	call PrintWordSegment
 	
 	mov sp, bp
 	pop bp

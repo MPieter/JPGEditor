@@ -95,12 +95,12 @@ PrintNumber PROC FAR
 	ret	argBytes
 PrintNumber ENDP
 
-; Prints the value of the data
+; Prints the value of the data (data are in words)
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of current data block in data
 ; Argument 3 = data length
 ; Note: inserts automatically a new line after 8 values
-PrintDataSegment PROC FAR
+PrintWordSegment PROC FAR
 	push bp
 	mov bp, sp
 	
@@ -108,7 +108,7 @@ PrintDataSegment PROC FAR
 	mov ax, [bp + 6][4]
 	mov ds, ax
 	mov si, [bp + 6][2]
-	; xor df, df ; TODO is this really necessary ? 
+	cld ; clear direction flag
 	mov cx, [bp + 6][0]
 	mov bx, 8
 @@:
@@ -127,7 +127,42 @@ ContinueLoop:
 	mov sp, bp
 	pop bp
 	ret 0
-PrintDataSegment ENDP
+PrintWordSegment ENDP
+
+; Prints the value of the data (data are in bytes)
+; Argument 1 = segment address of data
+; Argument 2 = offset address of current data block in data
+; Argument 3 = data length
+; Note: inserts automatically a new line after 8 values
+PrintByteSegment PROC FAR
+	push bp
+	mov bp, sp
+	
+	; Print result
+	mov ax, [bp + 6][4]
+	mov ds, ax
+	mov si, [bp + 6][2]
+	cld ; clear direction flag
+	mov cx, [bp + 6][0]
+	mov bx, 8
+	mov ah, 0
+@@:
+	lodsb
+	push ax
+	call PrintNumber
+	call PrintSpace
+	dec bx
+	cmp bx, 0
+	jne ContinueLoop
+	call PrintNewLine
+	mov bx, 8
+ContinueLoop:
+	loop @B
+	
+	mov sp, bp
+	pop bp
+	ret 0
+PrintByteSegment ENDP
 
 ; Initializes an array of length 8 with data
 ; Arguments on the stack:
@@ -163,11 +198,12 @@ initializeArray PROC FAR
 	ret 0
 initializeArray ENDP
 
+
 ; Initializes data in the data segment passed on the stack with dummy data (fixed, not random!) 
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data
-initializeMatrix PROC FAR
+initializeByteMatrix PROC FAR
 	push bp
 	mov bp, sp
 	
@@ -314,7 +350,160 @@ initializeMatrix PROC FAR
 	mov sp, bp
 	pop bp
 	ret 0
-initializeMatrix ENDP
+initializeByteMatrix ENDP
+
+; Initializes data in the data segment passed on the stack with dummy data (fixed, not random!) 
+; Arguments on the stack:
+; Argument 1 = segment address of data
+; Argument 2 = offset address of data
+initializeWordMatrix PROC FAR
+	push bp
+	mov bp, sp
+	
+	mov es, [bp + 6][2]
+	mov di, [bp + 6][0]
+	
+	; Row
+	mov ax, -415
+	stosw
+	mov ax, -26
+	stosw
+	mov ax, -58
+	stosw
+	mov ax, 33
+	stosw
+	mov ax, 56
+	stosw
+	mov ax, -24
+	stosw
+	mov ax, -2
+	stosw
+	mov ax, 0
+	stosw
+	; Row
+	mov ax, 4
+	stosw
+	mov ax, -16
+	stosw
+	mov ax, -50
+	stosw
+	mov ax, 11
+	stosw
+	mov ax, 11
+	stosw
+	mov ax, -7
+	stosw
+	mov ax, -6
+	stosw
+	mov ax, 4
+	stosw
+	; Row
+	mov ax, -45
+	stosw
+	mov ax, 6
+	stosw
+	mov ax, 70
+	stosw
+	mov ax, -28
+	stosw
+	mov ax, -28
+	stosw
+	mov ax, 11
+	stosw
+	mov ax, 4
+	stosw
+	mov ax, -5
+	stosw
+	; Row
+	mov ax, -59
+	stosw
+	mov ax, 13
+	stosw
+	mov ax, 39
+	stosw
+	mov ax, -21
+	stosw
+	mov ax, -12
+	stosw
+	mov ax, 9
+	stosw
+	mov ax, 2
+	stosw
+	mov ax, 2
+	stosw
+	; Row
+	mov ax, 12
+	stosw
+	mov ax, -6
+	stosw
+	mov ax, -13
+	stosw
+	mov ax, -5
+	stosw
+	mov ax, -2
+	stosw
+	mov ax, 2
+	stosw
+	mov ax, -3
+	stosw
+	mov ax, 3
+	stosw
+	; Row
+	mov ax, -10
+	stosw
+	mov ax, 3
+	stosw
+	mov ax, 3
+	stosw
+	mov ax, -9
+	stosw
+	mov ax, -3
+	stosw
+	mov ax, 1
+	stosw
+	mov ax, 5
+	stosw
+	mov ax, 2
+	stosw
+	; Row
+	mov ax, 0
+	stosw
+	mov ax, 0
+	stosw
+	mov ax, 0
+	stosw
+	mov ax, -2
+	stosw
+	mov ax, -1
+	stosw
+	mov ax, -4
+	stosw
+	mov ax, 4
+	stosw
+	mov ax, -1
+	stosw
+	; Row
+	mov ax, -1
+	stosw
+	mov ax, 0
+	stosw
+	mov ax, -1
+	stosw
+	mov ax, -5
+	stosw
+	mov ax, -1
+	stosw
+	mov ax, 0
+	stosw
+	mov ax, 0
+	stosw
+	mov ax, 1
+	stosw
+	
+	mov sp, bp
+	pop bp
+	ret 0
+initializeWordMatrix ENDP
 
 ; print an unsigned integer to stdout
 ; value on stack
