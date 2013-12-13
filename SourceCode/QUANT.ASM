@@ -22,7 +22,7 @@ Dequantization PROC FAR
 	; Push all values of the quantization table on the stack
 	mov ds, [bp + 6][2]
 	mov si, [bp + 6][0]
-	add si, 64 ; increment with 64 bytes (the size of the quantization table)
+	add si, 63 ; increment with 63 bytes (the size of the quantization table): we start at the back
 	std ; set direction flag downwards -> lodsb decrements the si register
 	mov cx, 64 ; counter
 	mov ah, 0 ; lodsb puts value in al

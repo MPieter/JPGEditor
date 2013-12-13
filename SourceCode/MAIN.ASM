@@ -69,7 +69,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 			
-	call DequantizationTest
+	; call DequantizationTest
 
 	; call readJPG
 	

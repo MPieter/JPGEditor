@@ -15,6 +15,9 @@ PrintString PROC FAR
 	push bp
 	mov bp, sp
 	
+	push ax
+	push dx
+	
 	mov	ah, 09h		; select function 09h
 	mov	dx, [bp + 6][0]	; load offset address of msg (in data segment)
 	int	21h		; call DOS, function 09h, print to stdout
@@ -23,6 +26,9 @@ PrintString PROC FAR
 	mov ah, 09h
 	mov dx, offset newline
 	int 21h
+	
+	pop dx
+	pop ax
 
 	mov sp, bp
 	pop bp
@@ -33,9 +39,15 @@ PrintSpace PROC FAR
 	push bp
 	mov bp, sp
 	
+	push ax
+	push dx
+	
 	mov	ah, 09h		; select function 09h
 	mov	dx, offset msgSpace
 	int	21h		; call DOS, function 09h, print to stdout
+	
+	pop dx
+	pop ax
 	
 	mov sp, bp
 	pop bp
@@ -46,10 +58,16 @@ PrintNewLine PROC FAR
 	push bp
 	mov bp, sp
 	
+	push ax
+	push dx
+	
 	; Print new line
 	mov ah, 09h
 	mov dx, offset newline
 	int 21h
+	
+	pop dx
+	pop ax
 	
 	mov sp, bp
 	pop bp
@@ -126,7 +144,7 @@ ContinueLoop:
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 6
 PrintWordSegment ENDP
 
 ; Prints the value of the data (data are in bytes)
@@ -161,7 +179,7 @@ ContinueLoop:
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 6
 PrintByteSegment ENDP
 
 ; Initializes an array of length 8 with data
@@ -199,7 +217,7 @@ initializeArray PROC FAR
 initializeArray ENDP
 
 
-; Initializes data in the data segment passed on the stack with dummy data (fixed, not random!) 
+; Initializes byte-data in the data segment passed on the stack with dummy data (fixed, not random!) 
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data
@@ -211,148 +229,148 @@ initializeByteMatrix PROC FAR
 	mov di, [bp + 6][0]
 	
 	; Row
-	mov ax, -415
-	stosw
-	mov ax, -26
-	stosw
-	mov ax, -58
-	stosw
-	mov ax, 33
-	stosw
-	mov ax, 56
-	stosw
-	mov ax, -24
-	stosw
-	mov ax, -2
-	stosw
-	mov ax, 0
-	stosw
-	; Row
-	mov ax, 4
-	stosw
-	mov ax, -16
-	stosw
-	mov ax, -50
-	stosw
-	mov ax, 11
-	stosw
-	mov ax, 11
-	stosw
-	mov ax, -7
-	stosw
-	mov ax, -6
-	stosw
-	mov ax, 4
-	stosw
-	; Row
-	mov ax, -45
-	stosw
-	mov ax, 6
-	stosw
-	mov ax, 70
-	stosw
-	mov ax, -28
-	stosw
-	mov ax, -28
-	stosw
-	mov ax, 11
-	stosw
-	mov ax, 4
-	stosw
-	mov ax, -5
-	stosw
-	; Row
-	mov ax, -59
-	stosw
-	mov ax, 13
-	stosw
-	mov ax, 39
-	stosw
-	mov ax, -21
-	stosw
-	mov ax, -12
-	stosw
-	mov ax, 9
-	stosw
 	mov ax, 2
-	stosw
+	stosb
 	mov ax, 2
-	stosw
-	; Row
-	mov ax, 12
-	stosw
-	mov ax, -6
-	stosw
-	mov ax, -13
-	stosw
-	mov ax, -5
-	stosw
-	mov ax, -2
-	stosw
+	stosb
 	mov ax, 2
-	stosw
-	mov ax, -3
-	stosw
-	mov ax, 3
-	stosw
-	; Row
-	mov ax, -10
-	stosw
-	mov ax, 3
-	stosw
-	mov ax, 3
-	stosw
-	mov ax, -9
-	stosw
-	mov ax, -3
-	stosw
-	mov ax, 1
-	stosw
-	mov ax, 5
-	stosw
+	stosb
 	mov ax, 2
-	stosw
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
 	; Row
-	mov ax, 0
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, -2
-	stosw
-	mov ax, -1
-	stosw
-	mov ax, -4
-	stosw
-	mov ax, 4
-	stosw
-	mov ax, -1
-	stosw
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
 	; Row
-	mov ax, -1
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, -1
-	stosw
-	mov ax, -5
-	stosw
-	mov ax, -1
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, 0
-	stosw
-	mov ax, 1
-	stosw
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	; Row
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	; Row
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	; Row
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	; Row
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	; Row
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
+	mov ax, 2
+	stosb
 	
 	mov sp, bp
 	pop bp
 	ret 0
 initializeByteMatrix ENDP
 
-; Initializes data in the data segment passed on the stack with dummy data (fixed, not random!) 
+; Initializes word-data in the data segment passed on the stack with dummy data (fixed, not random!) 
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data

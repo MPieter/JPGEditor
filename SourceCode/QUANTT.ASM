@@ -45,7 +45,7 @@ DequantizationTest PROC FAR
 	push ax
 	mov ax, offset matrixQuant
 	push ax
-	
+	call initializeByteMatrix
 	
 	mov ax, offset msgDataQuant
 	push ax
