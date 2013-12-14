@@ -15,7 +15,7 @@ HufDCd dw 0
 HufDCl dw 0
 HcodeDC dw 0
 
-PreviousDC dw 0
+
 PreviousDCL dw 0
 PreviousDCCr dw 0
 PreviousDCCb dw 0
@@ -41,12 +41,10 @@ NEXTMDU: ; One MDU is in our case (Color Space defined by YUV= 4:2:0):
 	mov HufDCl, offset HufDCLl
 	mov HcodeDC, offset HcodeDCL
 	
-	mov ax, [PreviousDCL]
-	mov [PreviousDC], ax
 	mov cx, 4
 Yblock:
 	dec cx
-	call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
+	call findCodeY ; will transform a piece of bitstream Raw to a matrix of 64 words
 	mov ax, offset inputIDCT
 	push ax	; gives the address of the tabel to use for the dequantization
 	;call Dequantization ; this matrix will be dequantized
@@ -55,57 +53,55 @@ Yblock:
 	;call iDCT	; Then we applied the iDCT on the output of Dequantization
 	;; TODO : Replace the output in memory (FARDATA ? )
 	jnz	Yblock
-	mov ax, [PreviousDC]
-	mov [PreviousDCL], ax
+
+	; ;--- Handle now the 2 dirominance-blocks (Cb and Cr)
+	; mov Hufl, offset HufACCl
+	; mov Hufd, offset HufACCd
+	; mov Hcode, offset HcodeACC
+	; mov HufDCd, offset HufDCCd
+	; mov HufDCl, offset HufDCCl
+	; mov HcodeDC, offset HcodeDCC
 	
-	;--- Handle now the 2 dirominance-blocks (Cb and Cr)
-	mov Hufl, offset HufACCl
-	mov Hufd, offset HufACCd
-	mov Hcode, offset HcodeACC
-	mov HufDCd, offset HufDCCd
-	mov HufDCl, offset HufDCCl
-	mov HcodeDC, offset HcodeDCC
+	; mov ax, [PreviousDCCb]
+	; mov [PreviousDC], ax
+	; mov cx, 1
+; Cbblock:
+	; dec cx
+	; call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
+	; mov ax, offset inputIDCT
+	; push ax	; gives the address of the tabel to use for the dequantization
+	; ;call Dequantization ; this matrix will be dequantized
+	; mov ax, offset inputIDCT
+	; push ax	; gives the tabel to use for the dequantization
+	; ;call iDCT	; Then we applied the iDCT on the output of Dequantization
+	; ;; TODO : Replace the output in memory (FARDATA ? )
+	; jnz	Cbblock	
+	; mov ax, [PreviousDC]
+	; mov [PreviousDCCb], ax
 	
-	mov ax, [PreviousDCCb]
-	mov [PreviousDC], ax
-	mov cx, 1
-Cbblock:
-	dec cx
-	call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
-	mov ax, offset inputIDCT
-	push ax	; gives the address of the tabel to use for the dequantization
-	;call Dequantization ; this matrix will be dequantized
-	mov ax, offset inputIDCT
-	push ax	; gives the tabel to use for the dequantization
-	;call iDCT	; Then we applied the iDCT on the output of Dequantization
-	;; TODO : Replace the output in memory (FARDATA ? )
-	jnz	Cbblock	
-	mov ax, [PreviousDC]
-	mov [PreviousDCCb], ax
-	
-	mov ax, [PreviousDCCr]
-	mov [PreviousDC], ax
-	mov cx, 1
-Crblock:
-	dec cx
-	call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
-	mov ax, offset inputIDCT
-	push ax	; gives the address of the tabel to use for the dequantization
-	;call Dequantization ; this matrix will be dequantized
-	mov ax, offset inputIDCT
-	push ax	; gives the tabel to use for the dequantization
-	;call iDCT	; Then we applied the iDCT on the output of Dequantization
-	;; TODO : Replace the output in memory (FARDATA ? )
-	jnz	Crblock	
-	mov ax, [PreviousDC]
-	mov [PreviousDCCr], ax
+	; mov ax, [PreviousDCCr]
+	; mov [PreviousDC], ax
+	; mov cx, 1
+; Crblock:
+	; dec cx
+	; call findCode ; will transform a piece of bitstream Raw to a matrix of 64 words
+	; mov ax, offset inputIDCT
+	; push ax	; gives the address of the tabel to use for the dequantization
+	; ;call Dequantization ; this matrix will be dequantized
+	; mov ax, offset inputIDCT
+	; push ax	; gives the tabel to use for the dequantization
+	; ;call iDCT	; Then we applied the iDCT on the output of Dequantization
+	; ;; TODO : Replace the output in memory (FARDATA ? )
+	; jnz	Crblock	
+	; mov ax, [PreviousDC]
+	; mov [PreviousDCCr], ax
 	
 	mov sp, bp
 	pop bp
 	ret 0
 entropyDecoding ENDP
  ; -----------------------------------------------------------
-findCode PROC NEAR
+findCodeY PROC NEAR
 	push bp
 	mov bp, sp
 	push	ax
@@ -127,41 +123,43 @@ findCode PROC NEAR
 	; -- First word: the DC-value
 	jmp nextLengthDC
 	nextLengthAgainDC:
+		mov al, HufDCLl[di]
 		xor ah, ah
-		mov al, [HufDCl][bx]
 		add si, ax
-		inc bx
+		inc di
 		nextLengthDC:
 			mov ax, [CalibratedWord]
-			mov cl, 15
-			sub cl, bl
+			mov bx, 15
+			sub bx, di
+			mov cl, bl
 			sar ax, cl	; shift ax so that only the bl first bit are compared with the codes tasie.
-			mov cl, HufDCl[bx]
-			cmp cl, 0
+			mov bl, HufDCLl[di]
+			cmp bl, 0
 			je	nextLengthAgainDC
 				nextCodeDC:
-					cmp ax, HcodeDC[si][cx]
+					cmp ax, HcodeDCL[si][bx]
 					je DecodeDCvalue
-					dec cl
-					cmp cl, 0
+					dec bl
+					cmp bl, 0
 					je nextLengthAgainDC
 					jmp nextCodeDC
 	DecodeDCvalue:
-			mov al, HufDCd[si][cx]
+			xor dh, dh
+			mov dl, [shift]
+			add dx, di	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (di) )
+			mov [shift], dl
+			mov al, HufDCLd[si][bx]
 			mov cl, 4
 			sal al, cl	; the length of the non-zero value is given by the 4 least significant bits of the symbol
 			mov dh, al	; put al in security cause ax will be the output of MakeCalibratedWord
-			mov dl, [shift]
-			add dl, bl	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bx) )
-			mov [shift], dl
 			call MakeCalibratedWord
 			; we are only interessed in the number formed by the dh (=length of the non-zero value) most significant bits.
 			mov cl, 16
 			sub cl, dh	; cl= 16 - length of the non-zero value
 			sar ax, cl
-			mov bx, [previousDC]
-			add ax, bx
-			mov [previousDC], ax
+			mov di, [PreviousDCL]
+			add ax, di
+			mov [previousDCL], ax
 			mov inputIDCT[di], ax
 			inc di		; a word has been written in the inputIDCT
 			; We will shift again, dh times. Like that shall the part DecodeAword correctly works.
@@ -173,9 +171,9 @@ findCode PROC NEAR
 	; -- We handle now the 63 AC-values
 	jmp DecodeAword
 	DecodeAwordAgain:
-		; [si][cl] gives the index of the symbol in Hufd
+		; [si][bx] gives the index of the symbol in Hufd
 		;---- Write zeros-length times 0's
-		mov al, Hufd[si][cx]
+		mov al, HufACLd[si][bx]
 		mov cl, 4
 		sar al, cl	; the zeros-length is given by the 4 most significant bits of the symbol
 		fillMatrix:
@@ -187,12 +185,12 @@ findCode PROC NEAR
 			jmp fillMatrix
 		;---- Write the non-zero value
 		WriteWord:
-			mov al, Hufd[si][cx]
+			mov al, HufACLd[si][bx]
 			mov cl, 4
 			sal al, cl	; the length of the non-zero value is given by the 4 least significant bits of the symbol
 			mov dh ,al	; put al in security cause ax will be the output of MakeCalibratedWord
 			mov dl, [shift]
-			add dl, bl	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (bx) )
+			add dl, bl	; dl gives the total shift we have to do to find the non-zero value. ( previous shift + shift over the code (di) )
 			mov [shift], dl
 			call MakeCalibratedWord
 			; we are only interessed in the number formed by the dh (=length of the non-zero value) most significant bits.
@@ -208,30 +206,34 @@ findCode PROC NEAR
 			call MakeCalibratedWord
 	
 	DecodeAword:
-		xor bx, bx
+		xor di, di
 		cmp di, 64
 		je DONE
 		jmp nextLength
 		nextLengthAgain:
 		xor ah, ah
-		mov al, HufDCl[bx]
+		mov al, HufACLl[di]
 		add si, ax
-		inc bx
+		inc di
 		nextLength:
 			mov ax, [CalibratedWord]
-			mov cl, 15
-			sub cl, bl
+			mov bx, 15
+			sub bx, di
+			mov cl, bl
 			sar ax, cl	; shift ax so that only the bl first bit are compared with the codes tasie.
-			mov cl, Hufl[bx]
-			cmp cl, 0
+			mov bl, HufACLl[di]
+			cmp bl, 0
 			je	nextLengthAgain
 				nextCode:
-					cmp ax, Hcode[si][cx]
+					mov di, Hcode
+					add di, si
+					cmp ax, HcodeACL[si][bx]
 					je DecodeAwordAgain
-					dec cl
-					cmp cl, 0
+					dec bl		
+					cmp bl, 0
 					je nextLengthAgain
 					jmp nextCode
+
 		DONE:
 
 	pop		es
@@ -245,7 +247,7 @@ findCode PROC NEAR
 	mov sp, bp
 	pop bp
 	ret
-findCode ENDP
+findCodeY ENDP
 ; -----------------------------------------------------------
 MakeCalibratedWord PROC NEAR ; This function make a shifted word: it takes 3 bytes and a shift and makes from that a word in AX (also put in CalibratedWord).
 	push bp
