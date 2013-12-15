@@ -31,7 +31,7 @@ include HELPERS.INC
 	msgArrayAdd db 'Executing ArrayAdd: $'
 	msgArraySub db 'Executing ArraySub (First array - Second array): $'
 	msgArraySar db 'Executing ArraySAR: $'
-	
+	msgScale db 'Executing Scaling: $'
 	
 .CODE
 
@@ -364,5 +364,64 @@ ArraySARTest PROC FAR
 	pop bp
 	ret 0
 ArraySARTest ENDP
+
+; Test code for the procedure MatrixScale
+; Executes a division by 8 on each element and makes sure that each entry is in
+; the range [0, 255]
+; No arguments on the stack
+MatrixScaleTest PROC FAR
+	push bp
+	mov bp, sp
+	
+	; test
+	xor ah, ah
+	mov al, 200
+	push ax
+	call PrintNumber
+	
+	; Initialize data segment
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	call initializeWordMatrixLarge
+	
+	mov ax, offset msgData
+	push ax
+	call PrintString
+	
+	; Print the data
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	mov ax, 64
+	push ax
+	call PrintWordSegment
+	
+	mov ax, offset msgScale
+	push ax
+	call PrintString
+	
+	; calculate Scaled Matrix 
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	call MatrixScale
+	
+	; Print the result
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	mov ax, 64
+	push ax
+	call PrintWordSegment
+	
+	mov sp, bp
+	pop bp
+	ret 0
+MatrixScaleTest ENDP
 
 END

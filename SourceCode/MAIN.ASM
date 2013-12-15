@@ -69,6 +69,8 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 			
+	call IDCTT
+	
 	; call DequantizationTest
 
 	; call readJPG
