@@ -523,6 +523,33 @@ initializeWordMatrix PROC FAR
 	ret 0
 initializeWordMatrix ENDP
 
+; Initializes word-data with large numbers in the data segment passed on the stack with 
+; dummy data (fixed, not random!) 
+; Arguments on the stack:
+; Argument 1 = segment address of data
+; Argument 2 = offset address of data
+initializeWordMatrixLarge PROC FAR
+	push bp
+	mov bp, sp
+	
+	mov es, [bp + 6][2]
+	mov di, [bp + 6][0]
+	
+	mov ax, -2000
+	mov cx, 8 ; number of rows
+@@:
+	push cx
+	mov cx, 8
+	rep stosw
+	pop cx
+	add ax, 500
+	loop @B
+	
+	mov sp, bp
+	pop bp
+	ret 4
+initializeWordMatrixLarge ENDP
+
 ; print an unsigned integer to stdout
 ; value on stack
 printint PROC NEAR

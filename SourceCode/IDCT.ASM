@@ -100,6 +100,12 @@ iDCT PROC FAR
 	push ax
 	call MatrixTranspose
 	
+	mov ax, [bp + 6][2]
+	push ax
+	mov ax, [bp + 6][0]
+	push ax
+	call MatrixScale
+	
 	mov sp, bp 
 	pop bp
 	ret 0
@@ -775,6 +781,48 @@ EndLoop:
 	pop bp
 	ret 8
 MatrixTranspose ENDP
+
+; Scales the matrix with a factor 8 so that the inverse discrete cosine transform the same is as the 
+; proper orthogonal transform IDCT-II. Shifts all the values with +128 and makes sure that each entry
+; is in the range [0, 255]
+; Arguments on the stack: 
+; Argument 1 = segment of matrix (data are words)
+; Argument 2 = offset of matrix
+MatrixScale PROC FAR
+	push bp
+	mov bp, sp
+	
+	mov ds, [bp + 6][2]
+	mov si, [bp + 6][0]
+	mov es, [bp + 6][2] ; desitnation is the same as the source
+	mov di, si
+	
+	mov cx, 64
+	xor dx, dx
+Start_Loop:
+	lodsw
+	mov bx, 8 ; the scale factor is 8
+	cwd		; sign extend to DX:AX (32-bit)
+	idiv bx ; result of calculation: AX = DX:AX / Op
+	add ax, 128
+	
+	; check boundary 255
+	cmp ax, 255
+	jle @F ; jump to forward label
+	mov ax, 255
+	; check boundary 0
+@@:
+	cmp ax, 0
+	jge @F
+	mov ax, 0
+@@:
+	stosw
+	loop Start_Loop
+	
+	mov sp, bp
+	pop bp
+	ret 4
+MatrixScale ENDP
 
 
 END

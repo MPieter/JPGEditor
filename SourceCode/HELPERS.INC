@@ -7,4 +7,5 @@ externdef PrintWordSegment:FAR
 externdef PrintByteSegment:FAR
 externdef initializeArray:FAR
 externdef initializeWordMatrix:FAR
+externdef initializeWordMatrixLarge:FAR
 externdef initializeByteMatrix:FAR
