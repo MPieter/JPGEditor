@@ -25,7 +25,6 @@ include HELPERS.INC
 	arrayThree dw 8 dup(0)
 	
 	; Messages for debugging
-	msgData db 'The data:$'
 	msgTranspose db 'Executing Transpose:$'
 	msgIDCT db 'Executing IDCT:$'
 	msgArrayAdd db 'Executing ArrayAdd: $'

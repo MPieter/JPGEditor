@@ -4,9 +4,9 @@ include EDITOR.INC
 include HELPERS.INC
 
 .DATA
-	YStreamSeg dw 1 ?
-	CbStreamSeg dw 1 ?
-	CrStreamSeg dw 1 ?
+	YStreamSeg dw ?
+	CbStreamSeg dw ?
+	CrStreamSeg dw ?
 	
 	msgError db 'Error during allocating memory.$'
 
@@ -19,9 +19,15 @@ startEditor PROC FAR
 	
 	call allocMemory
 	jnc ReadStart ; if no error continue
-	mov ax, offset msgError
-	push ax
+	mov dx, offset msgError
+	push dx
 	call PrintString
+	
+	push ax ; error code in ax
+	call PrintNumber
+	
+	push bx
+	call PrintNumber
 	
 ReadStart:	
 	
@@ -47,7 +53,7 @@ endEditor PROC FAR
 	mov es, ax
 	mov ah, 49h
 	int 21h
-	
+
 	; Release Cb-Stream
 	mov ax, offset CbStreamSeg
 	mov si, ax
@@ -79,14 +85,20 @@ allocMemory PROC NEAR
 	mov ax, seg YStreamSeg
 	mov es, ax
 
-
-	mov bx, 4000; number of paragraphs needed (1 paragraph = 16 bytes) and we need 64k bytes
+	clc ; clear carry flag
+	mov bx, 250; number of paragraphs needed (1 paragraph = 256 bytes) and we need 64k bytes
 	; Y-Stream
 	mov ax, offset YStreamSeg
 	mov di, ax
+	xor al, al
 	mov ah, 48h
 	int 21h ; store segment-address of allocated memory in ax
 	stosw
+	
+		
+	push bx
+	call PrintNumber
+	
 	
 	; Cb-Stream
 	mov ax, offset CbStreamSeg
@@ -109,5 +121,161 @@ allocMemory PROC NEAR
 	pop bp
 	ret 0
 allocMemory ENDP
+
+; Set register es to correct segment of Y Stream
+; Set register di to correct offset of Y Stream
+; Useful procedure for starting to write to YStream
+; No arguments on the stack
+setExtraSegmentYStream PROC FAR
+	push bp
+	mov bp, sp
+	
+	push ax ; save used registers
+	push ds
+	push si
+	
+	mov ax, seg YStreamSeg
+	mov ds, ax
+	mov si, offset YStreamSeg
+	lodsw ; loads segment address of YStream in AX
+	mov es, ax
+	mov di, 0
+	
+	pop si ; restore used registers
+	pop ds
+	pop ax
+	
+	mov sp, bp
+	pop bp
+	ret 0
+setExtraSegmentYStream ENDP
+
+; Set register es to correct segment of Cb Stream
+; Set register di to correct offset of Cb Stream
+; Useful procedure for starting to write to CbStream
+; No arguments on the stack
+setExtraSegmentCbStream PROC FAR
+	push bp
+	mov bp, sp
+	
+	push ax ; save used registers
+	push ds
+	push si
+	
+	mov ax, seg CbStreamSeg
+	mov ds, ax
+	mov si, offset CbStreamSeg
+	lodsw ; loads segment address of CbStream in AX
+	mov es, ax
+	mov di, 0
+	
+	pop si ; restore used registers
+	pop ds
+	pop ax
+	
+	mov sp, bp
+	pop bp
+	ret 0
+setExtraSegmentCbStream ENDP
+
+; Set register es to correct segment of Cr Stream
+; Set register di to correct offset of Cr Stream
+; Useful procedure for starting to write to CrStream
+; No arguments on the stack
+setExtraSegmentCrStream PROC FAR
+	push bp
+	mov bp, sp
+	
+	push ax ; save used registers
+	push ds
+	push si
+	
+	mov ax, seg CrStreamSeg
+	mov ds, ax
+	mov si, offset CrStreamSeg
+	lodsw ; loads segment address of CrStream in AX
+	mov es, ax
+	mov di, 0
+	
+	pop si ; restore used registers
+	pop ds
+	pop ax
+	
+	mov sp, bp
+	pop bp
+	ret 0
+setExtraSegmentCrStream ENDP
+
+; Set register ds to correct segment of Y Stream
+; Set register si to correct offset of Y Stream
+; Useful procedure for starting to read from YStream
+; No arguments on the stack
+setDataSegmentYStream PROC FAR
+	push bp
+	mov bp, sp
+	
+	push ax
+	
+	mov ax, seg YStreamSeg
+	mov ds, ax
+	mov si, offset YStreamSeg
+	lodsw
+	mov ds, ax
+	mov si, 0
+	
+	pop ax
+	
+	mov sp, bp
+	pop bp
+	ret 0
+setDataSegmentYStream ENDP
+
+; Set register ds to correct segment of Cb Stream
+; Set register si to correct offset of Cb Stream
+; Useful procedure for starting to read from CbStream
+; No arguments on the stack
+setDataSegmentCbStream PROC FAR
+	push bp
+	mov bp, sp
+	
+	push ax
+	
+	mov ax, seg CbStreamSeg
+	mov ds, ax
+	mov si, offset CbStreamSeg
+	lodsw
+	mov ds, ax
+	mov si, 0
+	
+	pop ax
+	
+	mov sp, bp
+	pop bp
+	ret 0
+setDataSegmentCbStream ENDP
+
+; Set register ds to correct segment of Cr Stream
+; Set register si to correct offset of Cr Stream
+; Useful procedure for starting to read from CrStream
+; No arguments on the stack
+setDataSegmentCrStream PROC FAR
+	push bp
+	mov bp, sp
+	
+	push ax
+	
+	mov ax, seg CrStreamSeg
+	mov ds, ax
+	mov si, offset CrStreamSeg
+	lodsw
+	mov ds, ax
+	mov si, 0
+	
+	pop ax
+	
+	mov sp, bp
+	pop bp
+	ret 0
+setDataSegmentCrStream ENDP
 
 END

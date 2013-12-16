@@ -2,13 +2,15 @@
 
 ; External methods
 include READ.INC
+include EDITOR.INC
 include EXPANSHT.INC
 include ENTROPY.INC
 include QUANT.INC
 include QUANTT.INC
 include IDCT.INC
 include IDCTT.INC
-include SHIFT.INC
+include SAMP.INC
+include SAMPT.INC
 include SHOW.INC
 include HELPERS.INC
 
@@ -69,7 +71,11 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 			
-	call IDCTT
+	call startEditor ; allocMemory
+	
+	call UpSamplingTest
+	
+	call endEditor ; release memory
 	
 	; call DequantizationTest
 

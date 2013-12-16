@@ -29,88 +29,73 @@ showImage PROC FAR
 	mov cx, 64000
 @@:
 	; Load Y on the stack
-	mov ax, seg YStreamSeg
-	mov ds, ax
-	mov si, offset YStreamSeg
-	lodsw ; loads addressof YStream in AX
-	mov ds, ax
-	mov si, 0
+	call setDataSegmentYStream
 	lodsb
 	xor ah, ah
 	push ax
 	
 	; Load Cb on the stack
-	mov ax, seg CbStreamSeg
-	mov ds, ax
-	mov si, offset CbStreamSeg
-	lodsw ; loads addressof YStream in AX
-	mov ds, ax
-	mov si, 0
+	call setDataSegmentCbStream
 	lodsb
 	xor ah, ah
 	push ax
 	
 	; Load Cr on the stack
-	mov ax, seg CrStreamSeg
-	mov ds, ax
-	mov si, offset CrStreamSeg
-	lodsw ; loads addressof YStream in AX
-	mov ds, ax
-	mov si, 0
+	call setDataSegmentCrStream
 	lodsb
 	xor ah, ah
 	push ax
 	
 	; calculate R: 100*R = 116.4(Y - 16) + 159.6(Cr - 128)
-	mov ax, [sp + 4] 		; AX = Y
-	sub ax, 16				; AX = Y - 16
-	mov dx, 116
-	mul dx ; result of calculation: DX:AX = AX * Op = 116 * ( Y - 16 )
-	push ax
-	mov ax, [sp + 2] 		; AX = Cr
-	sub ax, 128				; AX = Cr - 128
-	mov dx, 160	
-	mul dx						; AX = 160 * ( Cr - 128 )
-	mov dx, ax 				; DX = 160 * ( Cr - 128 )
-	pop ax 					; AX = 116  * (Y - 16)
-	add ax, dx				; AX = 116 * ( Y - 16 ) + 160 * ( Cr - 128 )
-	push ax 					; Save R-value on the stack
+	; mov ax, [sp + 4] 		; AX = Y
+	; sub ax, 16				; AX = Y - 16
+	; mov dx, 116
+	; mul dx ; result of calculation: DX:AX = AX * Op = 116 * ( Y - 16 )
+	; push ax
+	; mov ax, [sp + 2] 		; AX = Cr
+	; sub ax, 128				; AX = Cr - 128
+	; mov dx, 160	
+	; mul dx						; AX = 160 * ( Cr - 128 )
+	; mov dx, ax 				; DX = 160 * ( Cr - 128 )
+	; pop ax 					; AX = 116  * (Y - 16)
+	; add ax, dx				; AX = 116 * ( Y - 16 ) + 160 * ( Cr - 128 )
+	; push ax 					; Save R-value on the stack
 	
-	; calculate G: 100*G = 116.4(Y - 16) - 81.3(Cr - 128) 	- 39.1(Cb - 128)
-	mov ax, [sp + 6]		; AX = Y
-	sub ax, 16				; AX = Y - 16
-	mov dx, 116
-	mul dx						; AX = 116 * ( Y - 16)
-	push ax
-	mov ax, [sp + 4]		; AX = Cr
-	sub ax, 128				; AX = Cr - 128
-	mov dx, 81
-	mul dx						; AX = 81 * ( Cr - 128 )
-	pop dx
-	sub dx, ax				; DX = 116 * ( Y - 16 ) - 81 * ( Cr - 128)
-	push dx
-	mov ax, [sp + 6]		; AX = Cb
-	sub ax, 128				; AX = Cb - 128
-	mov dx, 39
-	mul dx						; AX = 39 * ( Cb - 128 )
-	mov dx, ax				; DX = 39 * ( Cb - 128 )
-	pop ax
-	sub ax, dx				; AX = 116 * ( Y - 16 ) - 81 * ( Cr - 128) - 39 * ( Cb - 128 )
-	push ax					; Save G-value on the stack
+	; ; calculate G: 100*G = 116.4(Y - 16) - 81.3(Cr - 128) 	- 39.1(Cb - 128)
+	; mov ax, [sp + 6]		; AX = Y
+	; sub ax, 16				; AX = Y - 16
+	; mov dx, 116
+	; mul dx						; AX = 116 * ( Y - 16)
+	; push ax
+	; mov ax, [sp + 4]		; AX = Cr
+	; sub ax, 128				; AX = Cr - 128
+	; mov dx, 81
+	; mul dx						; AX = 81 * ( Cr - 128 )
+	; pop dx
+	; sub dx, ax				; DX = 116 * ( Y - 16 ) - 81 * ( Cr - 128)
+	; push dx
+	; mov ax, [sp + 6]		; AX = Cb
+	; sub ax, 128				; AX = Cb - 128
+	; mov dx, 39
+	; mul dx						; AX = 39 * ( Cb - 128 )
+	; mov dx, ax				; DX = 39 * ( Cb - 128 )
+	; pop ax
+	; sub ax, dx				; AX = 116 * ( Y - 16 ) - 81 * ( Cr - 128) - 39 * ( Cb - 128 )
+	; push ax					; Save G-value on the stack
 	
-	; calculate B: 100*B = 116.4(Y - 16)       						+ 201.8(Cb - 128)
-	mov ax, [sp + 8] 		; AX = Y
-	sub ax, 16				; AX = Y - 16
-	mov dx, 116
-	mul dx 					; AX = 116 * ( Y - 16 )
-	push ax
-	mov ax, [sp + 8] 		; AX = Cb
-	sub ax, 128				; AX = Cb - 128
-	mov dx, 202
-	mul dx						; AX = 202 * ( Cb - 128 )
-	pop dx
-	add dx, ax				; DX = 116 * ( Y - 16 ) + 202 * ( Cb - 128 )
-	push ax
+	; ; calculate B: 100*B = 116.4(Y - 16)       						+ 201.8(Cb - 128)
+	; mov ax, [sp + 8] 		; AX = Y
+	; sub ax, 16				; AX = Y - 16
+	; mov dx, 116
+	; mul dx 					; AX = 116 * ( Y - 16 )
+	; push ax
+	; mov ax, [sp + 8] 		; AX = Cb
+	; sub ax, 128				; AX = Cb - 128
+	; mov dx, 202
+	; mul dx						; AX = 202 * ( Cb - 128 )
+	; pop dx
+	; add dx, ax				; DX = 116 * ( Y - 16 ) + 202 * ( Cb - 128 )
+	; push ax
 	
 	call findClosestColorIndex ; returns index in ax
 	

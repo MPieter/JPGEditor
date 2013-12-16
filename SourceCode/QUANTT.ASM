@@ -10,13 +10,13 @@ include QUANT.INC
 	matrixData dw 64 dup(0)
 	matrixQuant db 64 dup(0)
 	
-	msgData db 'The data:$'
 	msgDataQuant db 'The Quantization Table:$'
 	msgDequantization db 'Executing Dequantization:$'
 
 .CODE
 
-
+; Test code for the procedure Dequantization
+; No arguments on the stack
 DequantizationTest PROC FAR
 	push bp
 	mov bp, sp
