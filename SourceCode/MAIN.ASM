@@ -56,6 +56,7 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 ; public inputIDCT, outputIDCT
 	; inputIDCT DW 64 dup (?)
 	; outputIDCT db 64 dup (?)
+	msgTest db 'Dit is een kliene test$'
 		
 .FARDATA?
 	; palette			db 768 dup(0)
@@ -70,8 +71,13 @@ public HufDCCd, HufACLd, HufACCd, HufDCLd, HufDCCl, HufACLl, HufACCl, HufDCLl, R
 main:
 	mov	ax, @DATA
 	mov	ds, ax
+	
+	mov ax, offset msgTest
+	push ax
+	call PrintString
 			
 	call startEditor ; allocMemory
+	jc EndProgram ; Exit program on memory allocation error
 	
 	call UpSamplingTest
 	
@@ -86,6 +92,7 @@ main:
 	;call entropyDecoding
 	
 	; Exit to DOS
+EndProgram:
 	mov	ax, 4c00h
 	int	21h
 

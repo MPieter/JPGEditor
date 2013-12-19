@@ -34,7 +34,7 @@ PrintString PROC FAR
 
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 2
 PrintString ENDP
 
 PrintSpace PROC FAR
@@ -182,7 +182,7 @@ ContinueLoop:
 	
 	mov sp, bp
 	pop bp
-	ret 6
+	ret 8
 PrintByteSegment ENDP
 
 ; Blocks the program until the user presses Enter.
@@ -235,7 +235,7 @@ initializeArray PROC FAR
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 4
 initializeArray ENDP
 
 
@@ -389,7 +389,7 @@ initializeByteMatrix PROC FAR
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 4
 initializeByteMatrix ENDP
 
 ; Initializes word-data in the data segment passed on the stack with dummy data (fixed, not random!) 
@@ -542,7 +542,7 @@ initializeWordMatrix PROC FAR
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 4
 initializeWordMatrix ENDP
 
 ; Initializes word-data with large numbers in the data segment passed on the stack with 

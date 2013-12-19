@@ -9,6 +9,8 @@ include HELPERS.INC
 	CrStreamSeg dw ?
 	
 	msgError db 'Error during allocating memory.$'
+	msgErrorCode db 'The Error code: $'
+	msgErrorBlockSize db 'The maximum block size available: $'
 
 .CODE
 
@@ -19,15 +21,31 @@ startEditor PROC FAR
 	
 	call allocMemory
 	jnc ReadStart ; if no error continue
+	; Error afhandeling
 	mov dx, offset msgError
+	push dx
+	call PrintString
+	call PrintNewline
+	
+	pushf ; save flags
+	; Error code
+	mov dx, offset msgErrorCode
 	push dx
 	call PrintString
 	
 	push ax ; error code in ax
 	call PrintNumber
+	call PrintNewline
 	
-	push bx
+	; Maximum block size available
+	mov dx, offset msgErrorBlockSize
+	push dx
+	call PrintString
+	push bx ; avalaible memory in bx
 	call PrintNumber
+	call PrintNewline
+	
+	popf ; pop flags
 	
 ReadStart:	
 	
@@ -94,11 +112,7 @@ allocMemory PROC NEAR
 	mov ah, 48h
 	int 21h ; store segment-address of allocated memory in ax
 	stosw
-	
-		
-	push bx
-	call PrintNumber
-	
+	jc EndAlloc
 	
 	; Cb-Stream
 	mov ax, offset CbStreamSeg
@@ -106,6 +120,7 @@ allocMemory PROC NEAR
 	mov ah, 48h
 	int 21h
 	stosw
+	jc EndAlloc
 	
 	; Cr-Stream
 	mov ax, offset CrStreamSeg
@@ -114,9 +129,8 @@ allocMemory PROC NEAR
 	int 21h
 	stosw
 	
-	
 	; More information about int 21, 48h: http://stanislavs.org/helppc/int_21-48.html
-	
+EndAlloc:
 	mov sp, bp
 	pop bp
 	ret 0

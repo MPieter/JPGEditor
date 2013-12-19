@@ -34,6 +34,7 @@ UpSamplingTest PROC FAR
 	add dx, ax ; add offset according to current count index
 	push dx
 	call initializeByteMatrix
+	inc cx
 	cmp cx, 6
 	jne @B
 	
