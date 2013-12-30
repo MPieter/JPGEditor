@@ -4,6 +4,8 @@ include HELPERS.INC
 
 .DATA
 	msgSpace db ' $'
+	msgData db 'The data:$'
+		
 	newline db 0dh, 0ah, '$'
 
 .CODE
@@ -32,7 +34,7 @@ PrintString PROC FAR
 
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 2
 PrintString ENDP
 
 PrintSpace PROC FAR
@@ -151,18 +153,19 @@ PrintWordSegment ENDP
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of current data block in data
 ; Argument 3 = data length
+; Argument 4 = insert a line break after 'x (= arg 4)' values
 ; Note: inserts automatically a new line after 8 values
 PrintByteSegment PROC FAR
 	push bp
 	mov bp, sp
 	
 	; Print result
-	mov ax, [bp + 6][4]
+	mov ax, [bp + 6][6]
 	mov ds, ax
-	mov si, [bp + 6][2]
+	mov si, [bp + 6][4]
 	cld ; clear direction flag
-	mov cx, [bp + 6][0]
-	mov bx, 8
+	mov cx, [bp + 6][2]
+	mov bx, [bp + 6][0]
 	mov ah, 0
 @@:
 	lodsb
@@ -173,14 +176,33 @@ PrintByteSegment PROC FAR
 	cmp bx, 0
 	jne ContinueLoop
 	call PrintNewLine
-	mov bx, 8
+	mov bx, [bp + 6][0]
 ContinueLoop:
 	loop @B
 	
 	mov sp, bp
 	pop bp
-	ret 6
+	ret 8
 PrintByteSegment ENDP
+
+; Blocks the program until the user presses Enter.
+; No arguments on the stack
+WaitForEnter PROC FAR
+	push bp
+	mov bp, sp
+
+@@:
+	mov ah, 00h
+	int 16h ; keyboard interrupt -> ascii character in al
+	
+	cmp al, 0dh ; ascii code for 'carriage return' = 0dh
+	jne @B
+	
+	
+	mov sp, bp
+	pop bp
+	ret 0
+WaitForEnter ENDP
 
 ; Initializes an array of length 8 with data
 ; Arguments on the stack:
@@ -213,7 +235,7 @@ initializeArray PROC FAR
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 4
 initializeArray ENDP
 
 
@@ -246,38 +268,21 @@ initializeByteMatrix PROC FAR
 	mov ax, 2
 	stosb
 	; Row
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
-	stosb
-	; Row
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
 	; Row
 	mov ax, 2
@@ -297,38 +302,21 @@ initializeByteMatrix PROC FAR
 	mov ax, 2
 	stosb
 	; Row
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
-	mov ax, 2
-	stosb
-	; Row
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
+	mov ax, 3
 	stosb
 	; Row
 	mov ax, 2
@@ -348,6 +336,23 @@ initializeByteMatrix PROC FAR
 	mov ax, 2
 	stosb
 	; Row
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	; Row
 	mov ax, 2
 	stosb
 	mov ax, 2
@@ -363,11 +368,28 @@ initializeByteMatrix PROC FAR
 	mov ax, 2
 	stosb
 	mov ax, 2
+	stosb
+	; Row
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
+	stosb
+	mov ax, 3
 	stosb
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 4
 initializeByteMatrix ENDP
 
 ; Initializes word-data in the data segment passed on the stack with dummy data (fixed, not random!) 
@@ -520,7 +542,7 @@ initializeWordMatrix PROC FAR
 	
 	mov sp, bp
 	pop bp
-	ret 0
+	ret 4
 initializeWordMatrix ENDP
 
 ; Initializes word-data with large numbers in the data segment passed on the stack with 
