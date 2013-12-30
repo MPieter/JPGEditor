@@ -3,9 +3,8 @@
 ; Contains Test Code for all the procedures in SAMPLING.ASM
 .MODEL large
 
-include EDITOR.INC
 include HELPERS.INC
-include SAMP.INC
+include SHOW.INC
 
 .DATA
 	dataMDU db 384 dup (?) ; contains one MDU -> 4x 8x8 Y blocks, 1x 8x8 Cb block, 1x 8x8 Cr block -> in total 384 bytes
@@ -56,7 +55,7 @@ UpSamplingTest PROC FAR
 	push ax
 	call PrintString
 	
-	call setDataSegmentYStream
+	;call setDataSegmentYStream
 	push ds
 	push si
 	mov ax, 256 ; 16x16 matrix
@@ -72,7 +71,7 @@ UpSamplingTest PROC FAR
 	push ax
 	call PrintString
 	
-	call setDataSegmentCbStream
+	;call setDataSegmentCbStream
 	push ds
 	push si
 	mov ax, 256 ; 16x16 matrix
@@ -88,7 +87,7 @@ UpSamplingTest PROC FAR
 	push ax
 	call PrintString
 	
-	call setDataSegmentCrStream
+	;call setDataSegmentCrStream
 	push ds
 	push si
 	mov ax, 256 ; 16x16 matrix

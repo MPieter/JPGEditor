@@ -8,9 +8,8 @@ include QUANT.INC
 include QUANTT.INC
 include IDCT.INC
 include IDCTT.INC
-include SAMP.INC
-include SAMPT.INC
 include SHOW.INC
+include SHOWT.INC
 include HELPERS.INC
 
 .STACK 1024  ; stack, 1024 bytes
@@ -54,6 +53,7 @@ include HELPERS.INC
 ;public inputIDCT, outputIDCT
 	inputIDCT dw 384 dup (?)
 	outputIDCT db 64 dup (?)
+	msgTest db 'Dit is een kleine test$'
 		
 .FARDATA?
 	screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
