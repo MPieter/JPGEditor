@@ -1,7 +1,6 @@
 .MODEL large
 
 include SHOW.INC
-include EDITOR.INC
 
 .DATA
 	RGBPalette db 768 dup(?)
@@ -31,7 +30,7 @@ showImage PROC FAR
 	
 	call getColorIndex
 	
-	call WriteToScreen	
+	; call WriteToScreen	
 	
 	mov sp, bp
 	pop bp
@@ -91,10 +90,10 @@ UpSamplingY PROC FAR
 	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	call setExtraSegmentYStream
+	;call setExtraSegmentYStream
 	push es
 	add di, [bp + 6][0]
-	;add di, 0
+	; add di, 0
 	push di
 	call ProcBlockY 
 	
@@ -103,7 +102,7 @@ UpSamplingY PROC FAR
 	mov ax, [bp + 6][2]
 	add ax, 64 ; Second matrix of 8x8 values
 	push ax
-	call setExtraSegmentYStream
+	;call setExtraSegmentYStream
 	push es
 	add di, [bp + 6][0]
 	add di, 8
@@ -115,7 +114,7 @@ UpSamplingY PROC FAR
 	mov ax, [bp + 6][2]
 	add ax, 128 ; Second matrix of 8x8 values
 	push ax
-	call setExtraSegmentYStream
+	;call setExtraSegmentYStream
 	push es
 	add di, [bp + 6][0]
 	add di, 128
@@ -127,7 +126,7 @@ UpSamplingY PROC FAR
 	mov ax, [bp + 6][2]
 	add ax, 192 ; Second matrix of 8x8 values
 	push ax
-	call setExtraSegmentYStream
+	;call setExtraSegmentYStream
 	push es
 	add di, [bp + 6][0]
 	add di, 136
@@ -184,7 +183,7 @@ UpSamplingCb PROC NEAR
 	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	call setExtraSegmentCbStream
+	;call setExtraSegmentCbStream
 	push es
 	add di, [bp + 4][0]
 	push di
@@ -207,7 +206,7 @@ UpSamplingCr PROC NEAR
 	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	call setExtraSegmentCrStream
+	;call setExtraSegmentCrStream
 	push es
 	add di, [bp + 4][0]
 	push di
@@ -317,12 +316,12 @@ calcRGB PROC FAR
 	; 100*B = 116.4(Y - 16)       						+ 201.8(Cb - 128)
 	
 	; calculate R: 100*R = 116.4(Y - 16) + 159.6(Cr - 128)
-	mov ax, [channel1][[bp + 6][4]] 		; AX = Y
+	; mov ax, [channel1][[bp + 6][4]] 		; AX = Y ; TODO 
 	sub ax, 16				; AX = Y - 16
 	mov dx, 116
 	mul dx ; result of calculation: DX:AX = AX * Op = 116 * ( Y - 16 )
 	push ax
-	mov ax, [channel3][bp + 6][0] 		; AX = Cr
+	;mov ax, [channel3][bp + 6][0] 		; AX = Cr
 	sub ax, 128				; AX = Cr - 128
 	mov dx, 160	
 	mul dx						; AX = 160 * ( Cr - 128 )
@@ -332,19 +331,19 @@ calcRGB PROC FAR
 	push ax 					; Save R-value on the stack
 	
 	; calculate G: 100*G = 116.4(Y - 16) - 81.3(Cr - 128) 	- 39.1(Cb - 128)
-	mov ax, [channel1][bp + 6][4]		; AX = Y
+	;mov ax, [channel1][bp + 6][4]		; AX = Y
 	sub ax, 16				; AX = Y - 16
 	mov dx, 116
 	mul dx						; AX = 116 * ( Y - 16)
 	push ax
-	mov ax, [channel3][bp + 6][0]		; AX = Cr
+	;mov ax, [channel3][bp + 6][0]		; AX = Cr
 	sub ax, 128				; AX = Cr - 128
 	mov dx, 81
 	mul dx						; AX = 81 * ( Cr - 128 )
 	pop dx
 	sub dx, ax				; DX = 116 * ( Y - 16 ) - 81 * ( Cr - 128)
 	push dx
-	mov ax, [channel2][bp + 6][2]		; AX = Cb
+	;mov ax, [channel2][bp + 6][2]		; AX = Cb
 	sub ax, 128				; AX = Cb - 128
 	mov dx, 39
 	mul dx						; AX = 39 * ( Cb - 128 )
