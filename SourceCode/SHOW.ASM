@@ -8,8 +8,8 @@ include SHOW.INC
 	
 	public channel1, channel2, channel3
 	channel1 db 256 dup(?) ; Used for Y and R values
-	channel2 db 256 dup(?) ; Used for U and G values
-	channel3 db 256 dup(?) ; Used for V and B values
+	channel2 db 256 dup(?) ; Used for U(Cb) and G values
+	channel3 db 256 dup(?) ; Used for V(Cr) and B values
 
 .FARDATA?
 	screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
@@ -68,18 +68,35 @@ UpSampling PROC FAR
 	mov ax, [bp + 6][0]
 	push ax
 	call UpSamplingY
+
+	; Argument 1 = segment of input Chromium stream
+; Argument 2 = offset in input Chromium stream
+; Argument 1 = segment of Chromium output stream
+; Argument 2 = offset in Chromium output stream
 	
+	; UpSampling of Cb
 	mov ax, [bp + 6][2]
 	push ax
 	mov ax, [bp + 6][0]
+	add ax, 512 ; We need the 5-th matrix in the MDU (512 = 4 * 64 * 2)
 	push ax
-	;call UpSamplingCb
+	mov ax, seg channel2
+	push ax
+	mov ax, offset channel2
+	push ax
+	call ProcessBlockC
 	
+	; UpSampling of Cr
 	mov ax, [bp + 6][2]
 	push ax
 	mov ax, [bp + 6][0]
+	add ax, 640 ; We need the 6-th matrix in the MDU (650 = 5 * 64 * 2)
 	push ax
-	;call UpSamplingCr
+	mov ax, seg channel3
+	push ax
+	mov ax, offset channel3
+	push ax
+	call ProcessBlockC
 	
 	mov sp, bp
 	pop bp
@@ -189,50 +206,6 @@ ProcBlockY PROC FAR
 	pop bp
 	ret 6
 ProcBlockY ENDP
-
-; Arguments on the stack
-; Argument 1 = segment of MDU
-; Argument 2 = offset in MDU
-UpSamplingCb PROC NEAR
-	push bp
-	mov bp, sp
-	
-	mov ax, [bp + 6][4]
-	push ax
-	mov ax, [bp + 6][2]
-	push ax
-	;call setExtraSegmentCbStream
-	push es
-	add di, [bp + 4][0]
-	push di
-	call ProcessBlockC
-	
-	mov sp, bp
-	pop bp
-	ret 6
-UpSamplingCb ENDP
-
-; Arguments on the stack
-; Argument 1 = segment of MDU
-; Argument 2 = offset in MDU
-UpSamplingCr PROC NEAR
-	push bp
-	mov bp, sp
-	
-	mov ax, [bp + 6][4]
-	push ax
-	mov ax, [bp + 6][2]
-	push ax
-	;call setExtraSegmentCrStream
-	push es
-	add di, [bp + 4][0]
-	push di
-	call ProcessBlockC
-	
-	mov sp, bp
-	pop bp
-	ret 6
-UpSamplingCr ENDP
 
 ; Copies the content of the data in the MDU to the Chromium output stream by converting
 ; the 8x8 block to a 16x16 block.

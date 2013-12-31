@@ -92,14 +92,15 @@ UpSamplingTest PROC FAR
 	push ax
 	call PrintString
 	
-	;call setDataSegmentCbStream
-	push ds
-	push si
+	mov ax, seg channel2
+	push ax
+	mov ax, offset channel2
+	push ax
 	mov ax, 256 ; 16x16 matrix
 	push ax
 	mov ax, 16 ; line break after 16 numbers
 	push ax
-	;call PrintByteSegment
+	call PrintByteSegment
 	
 	call WaitForEnter
 	
@@ -108,14 +109,15 @@ UpSamplingTest PROC FAR
 	push ax
 	call PrintString
 	
-	;call setDataSegmentCrStream
-	;push ds
-	;push si
+	mov ax, seg channel3
+	push ax
+	mov ax, offset channel3
+	push ax
 	mov ax, 256 ; 16x16 matrix
 	push ax
 	mov ax, 16 ; line break after 16 numbers
 	push ax
-	;call PrintByteSegment
+	call PrintByteSegment
 	
 	
 	mov sp, bp
