@@ -53,11 +53,7 @@ include HELPERS.INC
 ;public inputIDCT, outputIDCT
 	inputIDCT dw 384 dup (?)
 	outputIDCT db 64 dup (?)
-	msgTest db 'Dit is een kleine test$'
 		
-.FARDATA?
-	screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
-
 .CODE        ; code segment
 
 ; ----------------------------- CODE STARTS HERE -------------------------------
@@ -65,13 +61,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 	
-	mov ax, offset msgTest
-	push ax
-	call PrintString
-	
-	jc EndProgram ; Exit program on memory allocation error
-	
-	call UpSamplingTest
+	call WriteToScreenTest
 	
 
 	

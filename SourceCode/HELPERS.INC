@@ -10,7 +10,8 @@ externdef PrintNewLine:FAR
 externdef PrintWordSegment:FAR
 externdef PrintByteSegment:FAR
 externdef WaitForEnter:FAR
-externdef initializeArray:FAR
+externdef initializeWordArray:FAR
+externdef initializeByteArray:FAR
 externdef initializeWordMatrix:FAR
 externdef initializeWordMatrixLarge:FAR
 externdef initializeByteMatrix:FAR

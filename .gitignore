@@ -13,3 +13,5 @@ HelpCode/RemoteSystemsTempFiles/
 HelpCode/JPGEditor/RemoteSystemsTempFiles/
 SourceCode/MAIND.EXE
 SourceCode/TRANSD.LIB
+*.asv
+*.EXE

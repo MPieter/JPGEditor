@@ -155,7 +155,7 @@ ArrayADDTest PROC FAR
 	push ax
 	mov ax, offset arrayOne
 	push ax
-	call initializeArray
+	call initializeWordArray
 	
 	mov ax, offset msgData
 	push ax
@@ -174,7 +174,7 @@ ArrayADDTest PROC FAR
 	push ax
 	mov ax, offset arrayTwo
 	push ax
-	call initializeArray
+	call initializeWordArray
 	
 	mov ax, offset msgData
 	push ax
@@ -231,7 +231,7 @@ ArraySUBTest PROC FAR
 	push ax
 	mov ax, offset arrayOne
 	push ax
-	call initializeArray
+	call initializeWordArray
 	
 	; set ds and es for procedure ArrayADD
 	mov ax, seg arrayOne
@@ -262,7 +262,7 @@ ArraySUBTest PROC FAR
 	push ax
 	mov ax, offset arrayThree
 	push ax
-	call initializeArray
+	call initializeWordArray
 	
 	mov ax, offset msgData
 	push ax
@@ -319,7 +319,7 @@ ArraySARTest PROC FAR
 	push ax
 	mov ax, offset arrayOne
 	push ax
-	call initializeArray
+	call initializeWordArray
 	
 	mov ax, offset msgData
 	push ax

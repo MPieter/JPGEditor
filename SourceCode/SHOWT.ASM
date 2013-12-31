@@ -13,6 +13,11 @@ include SHOW.INC
 	msgYStream db 'The data for Y-channel: $'
 	msgCbStream db 'The data for Cb-channel: $'
 	msgCrStream db 'The data for Cr-channel: $'
+	msgChangeColorSpace db 'Executing changeColorSpace: $'
+	msgColorR db 'The R-values: $'
+	msgColorG db 'The G-values: $'
+	msgColorB db 'The B-values: $'
+	msgPalette db 'Executing setPalette: $'
 	
 .CODE
 
@@ -101,5 +106,138 @@ UpSamplingTest PROC FAR
 	pop bp
 	ret 0
 UpSamplingTest ENDP
+
+; Test code for the procedure changeColorSpace
+; No arguments on the stack
+changeColorSpaceTest PROC FAR
+	push bp
+	mov bp, sp
+
+	mov ax, offset msgChangeColorSpace
+	push ax
+	call PrintString
+
+	mov ax, seg channel1
+	push ax
+	mov ax, offset channel1
+	push ax
+	mov ax, 256
+	push ax
+	call initializeByteArray	
+	mov ax, seg channel2
+	push ax
+	mov ax, offset channel2
+	push ax
+	mov ax, 256
+	push ax
+	call initializeByteArray	
+	mov ax, seg channel3
+	push ax
+	mov ax, offset channel3
+	push ax
+	mov ax, 256
+	push ax
+	call initializeByteArray	
+
+	call changeColorSpace
+
+	; Print the result
+	mov ax, offset msgColorR
+	push ax
+	call PrintString
+	mov ax, seg channel1
+	push ax
+	mov ax, offset channel1
+	push ax
+	mov ax, 16
+	push ax
+	mov ax, 16
+	push ax
+	call PrintByteSegment
+
+	mov ax, offset msgColorG
+	push ax
+	call PrintString
+	mov ax, seg channel2
+	push ax
+	mov ax, offset channel2
+	push ax
+	mov ax, 16
+	push ax
+	mov ax, 16
+	push ax
+	call PrintByteSegment
+
+	mov ax, offset msgColorB
+	push ax
+	call PrintString
+	mov ax, seg channel3
+	push ax
+	mov ax, offset channel3
+	push ax
+	mov ax, 16
+	push ax
+	mov ax, 16
+	push ax
+	call PrintByteSegment
+
+	mov sp, bp
+	pop bp
+	ret 0
+changeColorSpaceTest ENDP
+
+; Test code for the procedure setPalette
+; No arguments on the stack
+setPaletteTest PROC FAR
+	push bp
+	mov bp, sp
+
+	mov ax, offset msgPalette
+	push ax
+	call PrintString
+
+	call setPalette
+
+	mov ax, seg RGBPalette
+	push ax
+	mov ax, offset RGBPalette
+	push ax
+	mov ax, 756 ; Number of values
+	push ax
+	mov ax, 3 ; Line break after each 3 numbers
+	push ax
+	call PrintByteSegment
+
+
+	mov sp, bp
+	pop bp
+	ret 0
+setPaletteTest ENDP
+
+; Test code for the procedure WriteToScreen
+; No arguments on the stack
+WriteToScreenTest PROC FAR
+	push bp
+	mov bp, sp
+
+	call setPalette
+
+	; Initalize pixels
+	mov ax, seg screenBuffer
+	push ax
+	mov ax, offset screenBuffer
+	push ax
+	mov ax, 64000
+	push ax
+	call initializeByteArray
+
+	call WriteToScreen
+
+	call WaitForEnter
+
+	mov sp, bp
+	pop bp
+	ret 0
+WriteToScreenTest ENDP
 
 END

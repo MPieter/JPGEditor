@@ -26,10 +26,11 @@ void createPalette()  {
 	}
 }
 
+/**
+ * Easier implementation for the assembly language. The output is the same as "createPalette".
+ */
 void createPaletteBis() {
 	std::cout << "Palette of 256 colors: " << std::endl;
-
-
 	for (int r = 0; r <= 60; r = r + 12) {
 		for (int g = 0; g <= 60; g = g + 12) {
 			for (int b = 0; b <= 60; b = b + 10) {

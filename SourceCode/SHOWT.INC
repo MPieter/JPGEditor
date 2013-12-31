@@ -1,2 +1,5 @@
 
 externdef UpSamplingTest:FAR
+externdef changeColorSpaceTest:FAR
+externdef setPaletteTest:FAR
+externdef WriteToScreenTest:FAR

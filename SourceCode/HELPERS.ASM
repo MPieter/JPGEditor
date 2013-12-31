@@ -154,7 +154,6 @@ PrintWordSegment ENDP
 ; Argument 2 = offset address of current data block in data
 ; Argument 3 = data length
 ; Argument 4 = insert a line break after 'x (= arg 4)' values
-; Note: inserts automatically a new line after 8 values
 PrintByteSegment PROC FAR
 	push bp
 	mov bp, sp
@@ -204,11 +203,11 @@ WaitForEnter PROC FAR
 	ret 0
 WaitForEnter ENDP
 
-; Initializes an array of length 8 with data
+; Initializes an array of length 8 with data (word-data)
 ; Arguments on the stack:
 ; Argument 1 = segment address of array
 ; Argument 2 = offset address of array
-initializeArray PROC FAR
+initializeWordArray PROC FAR
 	push bp
 	mov bp, sp
 	
@@ -236,8 +235,31 @@ initializeArray PROC FAR
 	mov sp, bp
 	pop bp
 	ret 4
-initializeArray ENDP
+initializeWordArray ENDP
 
+; Initializes an array with dummy data (byte-data)
+; Arguments on the stack:
+; Argument 1 = segment address of array
+; Argument 2 = offset address of array
+; Argument 3 = length of data
+initializeByteArray PROC FAR
+	push bp
+	mov bp, sp
+	
+	mov ax, [bp + 6][4]
+	mov es, ax
+	mov di, [bp + 6][2]
+	
+	mov cx, [bp + 6][0]
+@@:
+	mov ax, 10
+	stosb
+	loop @B
+	
+	mov sp, bp
+	pop bp
+	ret 4
+initializeByteArray ENDP
 
 ; Initializes byte-data in the data segment passed on the stack with dummy data (fixed, not random!) 
 ; Arguments on the stack:

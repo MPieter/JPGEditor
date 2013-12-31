@@ -1,5 +1,7 @@
 .MODEL large
 include ENTROPY.INC
+include IDCT.INC
+include QUANT.INC
 
 .DATA
 index dw offset raw	; Index representing the address of the byte we are working on in Raw

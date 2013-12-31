@@ -13,7 +13,8 @@
 
 
 int main() {
-	UpSampleY();
+	createPalette();
+	createPaletteBis();
 }
 
 
