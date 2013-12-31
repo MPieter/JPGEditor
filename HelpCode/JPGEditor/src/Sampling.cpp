@@ -19,6 +19,7 @@ void UpSampleY() {
 			input.push_back(2*(i + 1));
 		}
 	}
+	PrintInput(input);
 
 	int offset;
 
@@ -46,6 +47,17 @@ void UpSampleYBlock(std::vector<int> & input, int offset, std::vector<int> & out
 		offset = offset + 8;
 	}
 
+}
+
+void PrintInput(std::vector<int> & input) {
+	for (unsigned int i = 0; i < input.size(); i++) {
+		std::cout << input[i] << " ";
+		if ((i + 1) % 8 == 0) {
+			std::cout << std::endl;
+		}
+	}
+
+	std::cout << std::endl;
 }
 
 void PrintResult(std::vector<int> & output) {

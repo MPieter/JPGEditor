@@ -271,154 +271,86 @@ initializeByteMatrix PROC FAR
 	
 	mov es, [bp + 6][2]
 	mov di, [bp + 6][0]
-	
-	; Row
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	; Row
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	; Row
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	; Row
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	; Row
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	; Row
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	; Row
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	mov ax, 2
-	stosb
-	; Row
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
-	mov ax, 3
-	stosb
+
+	mov cx, 4
+Forloop:
+	push cx
+	mov cx, 8
+	FirstPart:
+		mov ax, 2
+		stosb
+		loop FirstPart
+
+	mov cx, 8
+	SecondPart:
+		mov ax, 3
+		stosb
+		loop SecondPart
+
+	pop cx
+	loop Forloop
 	
 	mov sp, bp
 	pop bp
 	ret 4
 initializeByteMatrix ENDP
 
-; Initializes word-data in the data segment passed on the stack with dummy data (fixed, not random!) 
+; Initializes word-data in the data segment passed on the stack with 
+; dummy data (fixed, not random!). Data contains 64 elements. 
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data
 initializeWordMatrix PROC FAR
+	push bp
+	mov bp, sp
+
+	push ax
+	push bx
+	push cx
+
+	; Algorithm used for initlializing the data:
+	;	for (int i = 0; i < 8; i++) {
+	;		for (int j = 0; j < 8; j++) {
+	;			input.push_back(2*(i + 1));
+	;	}
+	;}
+	
+	mov es, [bp + 6][2]
+	mov di, [bp + 6][0]
+
+	mov cx, 0
+OuterLoop:
+	push cx
+
+	mov cx, 8
+	InnerLoop:
+		mov ax, [bp - 8]
+		add ax, 1
+		mov bx, 2
+		mul bx
+		stosw
+
+		loop InnerLoop
+
+	pop cx
+	inc cx
+	cmp cx, 8
+	jne OuterLoop
+	
+	pop cx
+	pop bx
+	pop ax
+
+	mov sp, bp
+	pop bp
+	ret 4
+initializeWordMatrix ENDP
+
+; Initializes word-data in the data segment passed on the stack with dummy data (fixed, not random!) 
+; Arguments on the stack:
+; Argument 1 = segment address of data
+; Argument 2 = offset address of data
+intializeWordMatrixDCT PROC FAR
 	push bp
 	mov bp, sp
 	
@@ -565,7 +497,7 @@ initializeWordMatrix PROC FAR
 	mov sp, bp
 	pop bp
 	ret 4
-initializeWordMatrix ENDP
+intializeWordMatrixDCT ENDP
 
 ; Initializes word-data with large numbers in the data segment passed on the stack with 
 ; dummy data (fixed, not random!) 

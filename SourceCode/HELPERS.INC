@@ -12,6 +12,7 @@ externdef PrintByteSegment:FAR
 externdef WaitForEnter:FAR
 externdef initializeWordArray:FAR
 externdef initializeByteArray:FAR
-externdef initializeWordMatrix:FAR
+externdef intializeWordMatrixDCT:FAR
 externdef initializeWordMatrixLarge:FAR
 externdef initializeByteMatrix:FAR
+externdef initializeWordMatrix:FAR

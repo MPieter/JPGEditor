@@ -46,7 +46,7 @@ IDCTT PROC FAR
 	push ax
 	mov ax, offset dctCoeff
 	push ax
-	call initializeWordMatrix
+	call intializeWordMatrixDCT
 	
 	mov ax, offset msgData
 	push ax
@@ -100,7 +100,7 @@ TransposeTest PROC FAR
 	push ax
 	mov ax, offset dctCoeff
 	push ax
-	call initializeWordMatrix
+	call intializeWordMatrixDCT
 	
 	mov ax, offset msgData
 	push ax

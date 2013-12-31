@@ -7,7 +7,7 @@ include HELPERS.INC
 include SHOW.INC
 
 .DATA
-	dataMDU db 384 dup (?) ; contains one MDU -> 4x 8x8 Y blocks, 1x 8x8 Cb block, 1x 8x8 Cr block -> in total 384 bytes
+	dataMDU dw 384 dup (?) ; contains one MDU -> 4x 8x8 Y blocks, 1x 8x8 Cb block, 1x 8x8 Cr block -> in total 384 bytes
 	
 	msgSampling db 'Executing Upsampling: $'
 	msgYStream db 'The data for Y-channel: $'
@@ -33,14 +33,31 @@ UpSamplingTest PROC FAR
 	mov dx, seg dataMDU
 	push dx
 	mov dx, offset dataMDU
-	mov ax, 64
+	mov ax, 128 ; 64 words per matrix
+	push dx
 	mul cx
+	pop dx
 	add dx, ax ; add offset according to current count index
 	push dx
-	call initializeByteMatrix
+	call initializeWordMatrix
 	inc cx
 	cmp cx, 6
 	jne @B
+
+	; The data
+	mov ax, offset msgYStream
+	push ax
+	call PrintString
+
+	mov ax, seg dataMDU
+	push ax
+	mov ax, offset dataMDU
+	push ax
+	mov ax, 64
+	push ax
+	call PrintWordSegment
+
+	call WaitForEnter
 	
 	; Execute upsampling
 	mov ax, offset msgSampling
@@ -51,8 +68,6 @@ UpSamplingTest PROC FAR
 	push ax
 	mov ax, offset dataMDU
 	push ax
-	mov ax, 0
-	push ax
 	call UpSampling
 	
 	; Display Y-output
@@ -60,9 +75,10 @@ UpSamplingTest PROC FAR
 	push ax
 	call PrintString
 	
-	;call setDataSegmentYStream
-	push ds
-	push si
+	mov ax, seg channel1
+	push ax
+	mov ax, offset channel1
+	push ax
 	mov ax, 256 ; 16x16 matrix
 	push ax
 	mov ax, 16 ; line break after 16 numbers
@@ -83,7 +99,7 @@ UpSamplingTest PROC FAR
 	push ax
 	mov ax, 16 ; line break after 16 numbers
 	push ax
-	call PrintByteSegment
+	;call PrintByteSegment
 	
 	call WaitForEnter
 	
@@ -93,13 +109,13 @@ UpSamplingTest PROC FAR
 	call PrintString
 	
 	;call setDataSegmentCrStream
-	push ds
-	push si
+	;push ds
+	;push si
 	mov ax, 256 ; 16x16 matrix
 	push ax
 	mov ax, 16 ; line break after 16 numbers
 	push ax
-	call PrintByteSegment
+	;call PrintByteSegment
 	
 	
 	mov sp, bp

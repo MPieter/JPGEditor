@@ -14,6 +14,7 @@ void UpSampleY();
 
 void UpSampleYBlock(std::vector<int> & input, int offset, std::vector<int> & output);
 
+void PrintInput(std::vector<int> & input);
 void PrintResult(std::vector<int> & output);
 
 

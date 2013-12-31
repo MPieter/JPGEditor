@@ -61,7 +61,7 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 	
-	call WriteToScreenTest
+	call UpSamplingTest
 	
 
 	

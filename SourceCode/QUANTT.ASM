@@ -26,7 +26,7 @@ DequantizationTest PROC FAR
 	push ax
 	mov ax, offset matrixData
 	push ax
-	call initializeWordMatrix
+	call intializeWordMatrixDCT
 	
 	mov ax, offset msgData
 	push ax

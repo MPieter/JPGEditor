@@ -18,7 +18,7 @@ include SHOW.INC
 
 ; Function that shows the image in RGB-space in 256 colors on the screen
 ; Arguments on the stack:
-; Argument 1 = segment address of MDU
+; Argument 1 = segment address of MDU (MDU continas words)
 ; Argument 2 = offset address of MDU
 ; Argument 3 = MDU number
 ; The MDU contains data that is transformed with the IDCT.  The steps that need to be performed:
@@ -41,7 +41,13 @@ showImage PROC FAR
 	; Index in video geheugen plaatsen
 	call getColorIndex
 	
-	; call WriteToScreen	
+	call WriteToScreen	
+	; TODO
+	; calculate offset in YStream, CbStream, CrStream depending on the value of the MDU number
+	; mov ax, [bp + 6][0]
+	; mov bx, 256 ; number of bytes per block
+	; mul bx ; result of calculation: DX:AX = AX * Op
+	; mov bx, ax ; save result in ax
 	
 	mov sp, bp
 	pop bp
@@ -57,135 +63,136 @@ UpSampling PROC FAR
 	push bp
 	mov bp, sp
 	
-	; calculate offset in YStream, CbStream, CrStream depending on the value of the MDU number
-	mov ax, [bp + 6][0]
-	mov bx, 256 ; number of bytes per block
-	mul bx ; result of calculation: DX:AX = AX * Op
-	mov bx, ax ; save result in ax
-	
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	push bx ; offset in YStream
+	mov ax, [bp + 6][0]
+	push ax
 	call UpSamplingY
 	
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	push bx ; offset in CbStream
-	call UpSamplingCb
+	mov ax, [bp + 6][0]
+	push ax
+	;call UpSamplingCb
 	
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	push bx ; offset in CbStream
-	call UpSamplingCr
+	mov ax, [bp + 6][0]
+	push ax
+	;call UpSamplingCr
 	
 	mov sp, bp
 	pop bp
-	ret 6
+	ret 4
 UpSampling ENDP
 
 ; Arguments on the stack
 ; Argument 1 = segment address of MDU
 ; Argument 2 = offset address of MDU
-; Argument 3 = offset in YStream
 UpSamplingY PROC FAR
 	push bp
 	mov bp, sp
 			
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
 	push ax
-	;call setExtraSegmentYStream
-	push es
-	add di, [bp + 6][0]
-	; add di, 0
-	push di
+	mov ax, [bp + 6][0]
+	push ax
+	mov ax, 0
+	push ax
 	call ProcBlockY 
 	
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
-	add ax, 64 ; Second matrix of 8x8 values
 	push ax
-	;call setExtraSegmentYStream
-	push es
-	add di, [bp + 6][0]
-	add di, 8
-	push di
+	mov ax, [bp + 6][0]
+	add ax, 128 ; Second matrix of 8x8 values (64 words further)
+	push ax
+	mov ax, 8
+	push ax
 	call ProcBlockY 
 	
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
-	add ax, 128 ; Second matrix of 8x8 values
 	push ax
-	;call setExtraSegmentYStream
-	push es
-	add di, [bp + 6][0]
-	add di, 128
-	push di
+	mov ax, [bp + 6][0]
+	add ax, 256 ; Third matrix of 8x8 values (128 words further)
+	push ax
+	mov ax, 128
+	push ax
 	call ProcBlockY 
 	
-	mov ax, [bp + 6][4]
-	push ax
 	mov ax, [bp + 6][2]
-	add ax, 192 ; Second matrix of 8x8 values
 	push ax
-	;call setExtraSegmentYStream
-	push es
-	add di, [bp + 6][0]
-	add di, 136
-	push di
+	mov ax, [bp + 6][0]
+	add ax, 384 ; Fourth matrix of 8x8 values (192 words further)
+	push ax
+	mov ax, 136
+	push ax
 	call ProcBlockY 
 	
 	
 	mov sp, bp
 	pop bp
-	ret 6
+	ret 4
 UpSamplingY ENDP
 
 ; Arguments on the stack
-; Argument 1 = seg of input MDU
+; Argument 1 = seg of input and output (should be in the same segment)
 ; Argument 2 = offset of input MDU (start of current Y-block)
-; Argument 3 = seg of output Y stream
-; Argument 4 = offset in output Y stream (start of current 16x16 block with offset for current 8x8 block: possible values for offset are 0, 8, 128, 136)
+; Argument 3 = offset in channel1 (offset for current 8x8 block: possible values for offset are 0, 8, 128, 136)
 ProcBlockY PROC FAR
 	push bp
 	mov bp, sp
-	
-	mov ds, [bp + 6][8]
-	mov si, [bp + 6][6]
 
-	mov es, [bp + 6][4]
-	mov di, [bp + 6][2]
-	add di, [bp + 6][0]
+	; Equivalent C++ Code
+	;	for (int i = 0; i < 8; i++) {
+	;		for (int j = 0; j < 8; j++) {
+	;			output[offset] = input[i*8 + j];
+	;			offset++;
+	;	}
+	;	offset = offset + 8;
+	;}
 	
-	mov cx, 8 ; counter outer for loop
+	mov ds, [bp + 6][4]
+	mov es, [bp + 6][4]
+
+	mov ax, [bp + 6][0]
+	add ax, offset channel1
+	mov di, ax
+	
+	mov cx, 0 ; counter outer for loop
 @Outer:
 	push cx ; save counter outer for loop
-	mov cx, 8 ; counter inner for loop
+	mov cx, 0 ; counter inner for loop
 @Inner:	
-	movsb
-	inc di
-	loop @Inner
+	mov ax, [bp - 2] ; Counter outer for loop in ax
+	mov bx, 8
+	mul bx 			; ax = i * 8
+	add ax, cx       ; ax = i *8 + j
+	mov bx, 2
+	mul bx			; ax = 2 * (i * 8 + j) (Data are words)
+	mov bx, [bp + 6][2]
+	add ax, bx		; ax = [i * 8 + j]
+	mov si, ax
+	lodsw 
+	stosb
+	; End of inner loop
+	inc cx
+	cmp cx, 8
+	jne @Inner
+	; End of outer loop
 	pop cx
 	add di, 8
-	loop @Outer
+	inc cx
+	cmp cx, 8
+	jne @Outer
+
 	mov sp, bp
 	pop bp
-	ret 8
+	ret 6
 ProcBlockY ENDP
 
 ; Arguments on the stack
 ; Argument 1 = segment of MDU
 ; Argument 2 = offset in MDU
-; Argument 3 = offset in CbStream
 UpSamplingCb PROC NEAR
 	push bp
 	mov bp, sp
@@ -208,7 +215,6 @@ UpSamplingCb ENDP
 ; Arguments on the stack
 ; Argument 1 = segment of MDU
 ; Argument 2 = offset in MDU
-; Argument 3 = offset in CrStream
 UpSamplingCr PROC NEAR
 	push bp
 	mov bp, sp
@@ -495,6 +501,7 @@ WriteToScreen PROC FAR
 	int 10h
 
 	; Copy data of screenbuffer in the graphics memory
+	; TODO this is depending on the MDU number
 	mov ax, seg screenBuffer
 	mov ds, ax
 	mov si, offset screenBuffer
