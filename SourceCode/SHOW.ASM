@@ -37,18 +37,10 @@ showImage PROC FAR
 
 	; call changeColorSpace
  
-	; Daarna juiste color index berekenen
-	; Index in video geheugen plaatsen
-	call getColorIndex
-	
-	call WriteToScreen	
-	; TODO
-	; calculate offset in YStream, CbStream, CrStream depending on the value of the MDU number
-	; mov ax, [bp + 6][0]
-	; mov bx, 256 ; number of bytes per block
-	; mul bx ; result of calculation: DX:AX = AX * Op
-	; mov bx, ax ; save result in ax
-	
+ 	mov ax, [bp + 6][0]
+ 	push ax
+	call WriteToScreenBuffer
+		
 	mov sp, bp
 	pop bp
 	ret 6
@@ -68,11 +60,6 @@ UpSampling PROC FAR
 	mov ax, [bp + 6][0]
 	push ax
 	call UpSamplingY
-
-	; Argument 1 = segment of input Chromium stream
-; Argument 2 = offset in input Chromium stream
-; Argument 1 = segment of Chromium output stream
-; Argument 2 = offset in Chromium output stream
 	
 	; UpSampling of Cb
 	mov ax, [bp + 6][2]
@@ -251,37 +238,35 @@ Start_Loop:
 	ret 4
 ProcessBlockC ENDP
 
-getColorIndex PROC FAR
+; Procedure that writes the corresponding color indexes of the RGB values in the
+; screenBuffer.
+; Arguments on the stack:
+; Argument 1 = MDU number
+WriteToScreenBuffer PROC FAR
 	push bp
 	mov bp, sp
 	
-	; Loop over 16x16 matrix
-	xor ah, ah
-	mov cx, 0
-@@:
-	mov ax, seg channel1
-	push ax
-	mov ax, offset channel1
-	add ax, cx
-	push ax ; push Y value
-	mov ax, offset channel2
-	add ax, cx
-	push ax ; push U value
-	mov ax, offset channel3
-	add ax, cx
-	push ax  ; push V value
-	call changeColorSpace
-
-	inc cx
-	cmp cx, 256
-	jne @B
-	
 	; findClosestIndex
-	
+
+	; TODO
+	; calculate offset in YStream, CbStream, CrStream depending on the value of the MDU number
+	mov ax, [bp + 6][0]
+	mov bx, 256 ; number of bytes per block
+	mul bx ; result of calculation: DX:AX = AX * Op
+
+	mov es, seg screenBuffer
+	mov di, offset screenBuffer
+	add di, ax
+
+	mov ds, seg channel1
+	mov si, offset channel1
+	mov cx, 256
+	rep movsb
+
 	mov sp, bp
 	pop bp
-	ret 0
-getColorIndex ENDP
+	ret 2
+WriteToScreenBuffer ENDP
 
 ; Converts the values of YUV (YCbCr) to RGB
 ; No arguments on the stack
@@ -454,7 +439,7 @@ setPalette ENDP
 
 ; Procedures that writes the screenbuffer to the graphics memory.
 ; No arguments on the stack.
-WriteToScreen PROC FAR
+RenderScreen PROC FAR
 	push bp
 	mov bp, sp
 
@@ -487,7 +472,7 @@ WriteToScreen PROC FAR
 	mov sp, bp
 	pop bp
 	ret 0 
-WriteToScreen ENDP
+RenderScreen ENDP
 
 ; Returns the index in ax of the 8-bit color in the palette that is the closest to the specified RGB-values
 ; Arguments on the stack:

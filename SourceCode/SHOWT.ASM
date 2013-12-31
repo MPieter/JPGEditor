@@ -232,9 +232,9 @@ setPaletteTest PROC FAR
 	ret 0
 setPaletteTest ENDP
 
-; Test code for the procedure WriteToScreen
+; Test code for the procedure RenderScreen
 ; No arguments on the stack
-WriteToScreenTest PROC FAR
+RenderScreenTest PROC FAR
 	push bp
 	mov bp, sp
 
@@ -249,13 +249,13 @@ WriteToScreenTest PROC FAR
 	push ax
 	call initializeByteArray
 
-	call WriteToScreen
+	call RenderScreen
 
 	call WaitForEnter
 
 	mov sp, bp
 	pop bp
 	ret 0
-WriteToScreenTest ENDP
+RenderScreenTest ENDP
 
 END

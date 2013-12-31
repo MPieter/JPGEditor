@@ -61,9 +61,39 @@ main:
 	mov	ax, @DATA
 	mov	ds, ax
 	
-	call UpSamplingTest
+	;--- Extract the data and derive the Huffman Tables (HT)
+	call readJPG
 	
+	call expansionHT
+	
+	mov cx, 3
+	NewMDU:
+		call entropyDecoding
+		dec cx
+		cmp cx, 0
+		jne NewMDU
+	;--- Translate, part by part, the raw data in image block.
+	xor cx, cx
+	NEWMDU:
+		call entropyDecoding 	; the 6 matrix of 64 words are updated (in inputIDCT) 
+		
+		call zigzag				; the values of the 6 matrix are disposed in zigzag sequence.
+		
+		call Dequantization		; the values of the 6 matrix are multiplied by the appropriated quantization matrix
 
+		call iDCT				; IDCT is performed on the 6 matrix
+		
+		push cx		; number of MDU (to give the emplacement of the MDU in the image)
+		call showImage
+		
+		; ; inc cx
+		; ; cmp cx, 260 ; Our image is 320x200 pixels
+					; ; ; If one MDU is 16x16 pixels it means that we will need 20x13=260 MDU to recomposed our picture.
+		; ; jne NEWMDU
+
+	call RenderScreen
+
+	call WaitForEnter
 	
 	; Exit to DOS
 EndProgram:
