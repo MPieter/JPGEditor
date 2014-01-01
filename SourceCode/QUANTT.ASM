@@ -11,11 +11,11 @@ include QUANT.INC
 	matrixQuant db 64 dup(0)
 	
 	msgDataQuant db 'The Quantization Table:$'
-	msgDequantization db 'Executing Dequantization:$'
+	msgDequantization db 'Executing DequantBlock:$'
 
 .CODE
 
-; Test code for the procedure Dequantization
+; Test code for the procedure DequantBlock
 ; No arguments on the stack
 DequantizationTest PROC FAR
 	push bp
@@ -72,7 +72,7 @@ DequantizationTest PROC FAR
 	push ax
 	mov ax, offset matrixQuant
 	push ax
-	call Dequantization
+	call DequantBlock
 	
 	mov ax, seg matrixData
 	push ax

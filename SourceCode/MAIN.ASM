@@ -11,6 +11,8 @@ include IDCTT.INC
 include SHOW.INC
 include SHOWT.INC
 include HELPERS.INC
+include ZIGZAG.INC
+include ZIGZAGT.INC
 
 .STACK 1024  ; stack, 1024 bytes
 
@@ -49,10 +51,15 @@ include HELPERS.INC
 	HcodeDCC dw 12 dup (?)
 	
 	
-;------ DATA used among other in IDCT.ASM
-;public inputIDCT, outputIDCT
-	inputIDCT dw 384 dup (?)
-	outputIDCT db 64 dup (?)
+;------ DATA used among other in iDCT_Block.ASM
+;public inputiDCT_Block, outputiDCT_Block
+	inputiDCT dw 384 dup (?)
+	msgDataCX db 'The value of CX: $'
+	msgentropy db 'Entropy: $'
+	msgzigzag db 'Zigzag: $'
+	msgDequant db 'Dequant: $'
+	msgIDCT db 'iDCT: $'
+	msgShow db 'Showing: $'
 		
 .CODE        ; code segment
 
@@ -60,40 +67,62 @@ include HELPERS.INC
 main:
 	mov	ax, @DATA
 	mov	ds, ax
-	
+
 	;--- Extract the data and derive the Huffman Tables (HT)
-	call readJPG
+ 	call readJPG
 	
-	call expansionHT
+ 	call expansionHT
 	
-	mov cx, 3
-	NewMDU:
-		call entropyDecoding
-		dec cx
-		cmp cx, 0
-		jne NewMDU
+
 	;--- Translate, part by part, the raw data in image block.
-	xor cx, cx
-	NEWMDU:
-		call entropyDecoding 	; the 6 matrix of 64 words are updated (in inputIDCT) 
-		
-		call zigzag				; the values of the 6 matrix are disposed in zigzag sequence.
-		
-		call Dequantization		; the values of the 6 matrix are multiplied by the appropriated quantization matrix
+ 	xor cx, cx
+NEWMDU:
+ 	call entropyDecoding 	; the 6 matrix of 64 words are updated (in inputiDCT) 
 
-		call iDCT				; IDCT is performed on the 6 matrix
-		
-		push cx		; number of MDU (to give the emplacement of the MDU in the image)
-		call showImage
-		
-		; ; inc cx
-		; ; cmp cx, 260 ; Our image is 320x200 pixels
-					; ; ; If one MDU is 16x16 pixels it means that we will need 20x13=260 MDU to recomposed our picture.
-		; ; jne NEWMDU
+ 	mov ax, seg inputiDCT
+ 	push ax
+ 	mov ax, offset inputiDCT
+ 	push ax
+ 	call zigzag				; the values of the 6 matrix are disposed in zigzag sequence.
 
-	call RenderScreen
+	;mov ax, offset msgDequant
+	;push ax
+	;call PrintString
+
+	mov ax, seg inputiDCT
+	push ax
+	mov ax, offset inputiDCT
+	push ax
+	call Dequantization		; the values of the 6 matrix are multiplied by the appropriated quantization matrix
+
+	mov ax, seg inputiDCT
+	push ax
+	mov ax, offset inputiDCT
+	push ax
+	call iDCT 				; iDCT_Block is performed on the 6 matrix
+
+	mov ax, seg inputiDCT
+	push ax
+	mov ax, offset inputiDCT
+	push ax
+	push cx		; number of MDU (to give the emplacement of the MDU in the image)
+	call showImage
+		
+	inc cx
+	mov ax, offset msgDataCX
+	push ax
+	call PrintString
+	push cx
+	call PrintNumber
+	cmp cx, 250 ; Our image is 320x200 pixels
+				; If one MDU is 16x16 pixels it means that we will need 20x13=260 MDU to recomposed our picture.
+	jne NEWMDU
+
+ 	call RenderScreen
 
 	call WaitForEnter
+
+	call RestoreScreen
 	
 	; Exit to DOS
 EndProgram:

@@ -318,7 +318,7 @@ initializeWordMatrix PROC FAR
 	mov es, [bp + 6][2]
 	mov di, [bp + 6][0]
 
-	mov cx, 0
+	xor cx, cx
 OuterLoop:
 	push cx
 

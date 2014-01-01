@@ -49,17 +49,66 @@ blockEl equ 64
 	
 .CODE
 
+; Calculates the inverse discrete cosine transform of an MDU.
+; The IDCT is applied to each block in the MDU
+; Argument on the stack:
+; Argument 1 = segment address of MDU (MDU contians words)
+; Argument 2 = offset address of MDU
+iDCT PROC FAR
+	push bp
+	mov bp, sp
+
+	push ax
+	push cx
+	push dx
+
+	xor cx, cx ; counter loop
+@@:
+	mov dx, [bp + 6][2]
+	push dx
+	mov dx, [bp + 6][0]
+	mov ax, 128 ; 64 words per matrix
+	push dx 	; save dx for multiplication operation
+	mul cx
+	pop dx
+	add dx, ax ; add offset according to current count index
+	push dx 	
+	mov dx, [bp + 6][2] ; 3th and 4th argument are the same as first and second
+	push dx
+	mov dx, [bp + 6][0]
+	mov ax, 128 ; 64 words per matrix
+	push dx 	; save dx for multiplication operation
+	mul cx
+	pop dx
+	add dx, ax ; add offset according to current count index
+	push dx
+	call iDCT_Block
+	inc cx
+	cmp cx, 6
+	jne @B
+
+	pop dx
+	pop cx
+	pop ax
+
+	mov sp, bp
+	pop bp
+	ret 4
+iDCT ENDP
+
 ; Calculates the inverse discrete cosine transform of an 8x8 matrix
 ; Arguments on the stack:
 ; Argument 1 = segment address of data
 ; Argument 2 = offset address of data
 ; Argument 3 = segment address for output
 ; Argument 4 = offset address for output
-iDCT PROC FAR
+; Note: It is possible that input and output point to the same data segment
+iDCT_Block PROC FAR
 	push bp
 	mov bp, sp
+
+	push ax
 	
-	; TODO integer based discrete cosine transform implementeren
 	mov ax, [bp +6][6] ; first argument
 	push ax
 	mov ax, [bp + 6][4] ; second argument
@@ -105,11 +154,13 @@ iDCT PROC FAR
 	mov ax, [bp + 6][0]
 	push ax
 	call MatrixScale
+
+	pop ax
 	
 	mov sp, bp 
 	pop bp
-	ret 0
-iDCT ENDP
+	ret 8
+iDCT_Block ENDP
 
 ; Calculates the bink inverse discrete cosine transform of one block.
 ; Arguments on the stack: 
@@ -120,7 +171,12 @@ iDCT ENDP
 iDCT_Bink PROC NEAR
 	push bp
 	mov bp, sp
-	
+
+	push ax ; Save registers
+	push bx
+	push cx
+	push dx
+
 	; set data segment and source index register to data source
 	mov ds, [bp + 4][6] ; first argument
 	mov si, [bp + 4][4] ; second argument
@@ -625,6 +681,11 @@ iDCT_Bink PROC NEAR
 	add ax, 112 ; offset is 56 words further
 	push ax
 	call ArraySUB
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	
 	mov sp, bp
 	pop bp
@@ -740,11 +801,16 @@ MatrixTranspose PROC FAR
 	push bp
 	mov bp, sp
 
+	push ax
+	push bx
+	push cx
+	push dx
+
 	mov ds, [bp + 6][6] ; First Argument
 	mov si, [bp + 6][4] ; Second argument
 	mov es, [bp + 6][2] ; Third Argument
 	; mov di, [bp + 4][0] ; Last Argument -> overbodige instructie, moet toch elke keer in de for-loop gebeuren
-	mov cx, 0
+	xor cx, cx
 	
 	; C++ Code
 	;	for (int i = 0; i < 64; i++) {
@@ -772,11 +838,13 @@ MatrixTranspose PROC FAR
 	
 	inc cx
 	cmp cx, 64
-	je EndLoop
-	jmp @B
+	jne @B
 	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 
-EndLoop:
 	mov sp, bp
 	pop bp
 	ret 8
@@ -791,6 +859,11 @@ MatrixTranspose ENDP
 MatrixScale PROC FAR
 	push bp
 	mov bp, sp
+
+	push ax
+	push bx
+	push cx
+	push dx
 	
 	mov ds, [bp + 6][2]
 	mov si, [bp + 6][0]
@@ -818,6 +891,11 @@ Start_Loop:
 @@:
 	stosw
 	loop Start_Loop
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	
 	mov sp, bp
 	pop bp

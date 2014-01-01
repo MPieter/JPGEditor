@@ -8,7 +8,7 @@ include IDCTT.INC
 include HELPERS.INC
 
 .DATA
-	dctCoeff dw 64 dup(0)
+	dctCoeff dw 384 dup(?)
 	; dctCoeff 	dw -415, -26, -58, 33, 56, -24, -2, 0 ; data is separated on multiple lines because of a line-length limitation (http://www.masmforum.com/board/index.php?PHPSESSID=786dd40408172108b65a5a36b09c88c0&topic=16595.0)
 	; 				dw 4, -16, -50, 11, 11, -7, -6, 4,
 	; 				dw -45, 6, 70, -28, -28, 11, 4, -5
@@ -25,8 +25,9 @@ include HELPERS.INC
 	arrayThree dw 8 dup(0)
 	
 	; Messages for debugging
+	msgIDCT db 'Executing iDCT: $'
 	msgTranspose db 'Executing Transpose:$'
-	msgIDCT db 'Executing IDCT:$'
+	msgIDCTBlock db 'Executing IDCT_Block:$'
 	msgArrayAdd db 'Executing ArrayAdd: $'
 	msgArraySub db 'Executing ArraySub (First array - Second array): $'
 	msgArraySar db 'Executing ArraySAR: $'
@@ -35,9 +36,56 @@ include HELPERS.INC
 .CODE
 
 ; Test code for the procedure iDCT
+; No arguments on the stack
+IDCTTest PROC FAR
+	push bp
+	mov bp, sp
+
+	; Create 6 byte-matrices stored after each other in the MDU
+	xor cx, cx ; counter loop
+@@:
+	mov dx, seg dctCoeff
+	push dx
+	mov dx, offset dctCoeff
+	mov ax, 128 ; 64 words per matrix
+	push dx
+	mul cx
+	pop dx
+	add dx, ax ; add offset according to current count index
+	push dx
+	call intializeWordMatrixDCT
+	inc cx
+	cmp cx, 6
+	jne @B
+
+	; Execute upsampling
+	mov ax, offset msgIDCT
+	push ax
+	call PrintString
+
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	call iDCT
+
+	mov ax, seg dctCoeff
+	push ax
+	mov ax, offset dctCoeff
+	push ax
+	mov ax, 64 ; 8x8 matrix
+	push ax
+	call PrintWordSegment
+
+	mov sp, bp
+	pop bp
+	ret 0
+IDCTTest ENDP
+
+; Test code for the procedure iDCT_Block
 ; Usage: call function on see output in MS-DOS
 ; No arguments on the stack
-IDCTT PROC FAR
+IDCT_BlockTest PROC FAR
 	push bp
 	mov bp, sp
 	
@@ -61,7 +109,7 @@ IDCTT PROC FAR
 	push ax
 	call PrintWordSegment
 	
-	mov ax, offset msgIDCT
+	mov ax, offset msgIDCTBlock
 	push ax
 	call PrintString
 	
@@ -70,15 +118,15 @@ IDCTT PROC FAR
 	push ax
 	mov ax, offset dctCoeff
 	push ax
-	mov ax, seg subimage
+	mov ax, seg dctCoeff
 	push ax
-	mov ax, offset subimage
+	mov ax, offset dctCoeff
 	push ax
-	call iDCT
+	call iDCT_Block
 	
-	mov ax, seg subimage
+	mov ax, seg dctCoeff
 	push ax
-	mov ax, offset subimage
+	mov ax, offset dctCoeff
 	push ax
 	mov ax, 64
 	push ax
@@ -87,7 +135,7 @@ IDCTT PROC FAR
 	mov sp, bp
 	pop bp
 	ret 0
-IDCTT ENDP
+IDCT_BlockTest ENDP
 
 ; Test code for the procedure MatrixTranspose
 ; No arguments on the stack

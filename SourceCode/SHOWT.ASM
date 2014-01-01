@@ -28,7 +28,7 @@ UpSamplingTest PROC FAR
 	mov bp, sp
 	
 	; Create 6 byte-matrices stored after each other in the MDU
-	mov cx, 0 ; counter loop
+	xor cx, cx ; counter loop
 @@:
 	mov dx, seg dataMDU
 	push dx

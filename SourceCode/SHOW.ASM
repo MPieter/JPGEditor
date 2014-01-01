@@ -11,6 +11,8 @@ include SHOW.INC
 	channel2 db 256 dup(?) ; Used for U(Cb) and G values
 	channel3 db 256 dup(?) ; Used for V(Cr) and B values
 
+	oldVideoMode db ?
+
 .FARDATA?
 	screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
 
@@ -146,6 +148,11 @@ ProcBlockY PROC FAR
 	push bp
 	mov bp, sp
 
+	push ax
+	push bx
+	push cx
+	push dx
+
 	; Equivalent C++ Code
 	;	for (int i = 0; i < 8; i++) {
 	;		for (int j = 0; j < 8; j++) {
@@ -162,10 +169,10 @@ ProcBlockY PROC FAR
 	add ax, offset channel1
 	mov di, ax
 	
-	mov cx, 0 ; counter outer for loop
+	xor cx, cx ; counter outer for loop
 @Outer:
 	push cx ; save counter outer for loop
-	mov cx, 0 ; counter inner for loop
+	xor cx, cx ; counter inner for loop
 @Inner:	
 	mov ax, [bp - 2] ; Counter outer for loop in ax
 	mov bx, 8
@@ -189,6 +196,11 @@ ProcBlockY PROC FAR
 	cmp cx, 8
 	jne @Outer
 
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
 	mov sp, bp
 	pop bp
 	ret 6
@@ -199,13 +211,14 @@ ProcBlockY ENDP
 ; Arguments on the stack
 ; Argument 1 = segment of input Chromium stream
 ; Argument 2 = offset in input Chromium stream
-; Argument 1 = segment of Chromium output stream
-; Argument 2 = offset in Chromium output stream
+; Argument 3 = segment of Chromium output stream
+; Argument 4 = offset in Chromium output stream
 ProcessBlockC PROC FAR
 	push bp
 	mov bp, sp
 	
-	push ax ; save register ax
+	push ax
+	push cx
 	
 	mov ds, [bp + 6][6]
 	mov si, [bp + 6][4]
@@ -230,12 +243,12 @@ Start_Loop:
 	pop cx
 	loop Start_Loop
 	
-	
-	pop ax ; restore register ax
+	pop cx
+	pop ax
 	
 	mov sp, bp
 	pop bp
-	ret 4
+	ret 8
 ProcessBlockC ENDP
 
 ; Procedure that writes the corresponding color indexes of the RGB values in the
@@ -245,6 +258,10 @@ ProcessBlockC ENDP
 WriteToScreenBuffer PROC FAR
 	push bp
 	mov bp, sp
+
+	push ax
+	push bx
+	push cx
 	
 	; findClosestIndex
 
@@ -254,14 +271,20 @@ WriteToScreenBuffer PROC FAR
 	mov bx, 256 ; number of bytes per block
 	mul bx ; result of calculation: DX:AX = AX * Op
 
-	mov es, seg screenBuffer
+	mov bx, seg screenBuffer
+	mov es, bx
 	mov di, offset screenBuffer
 	add di, ax
 
-	mov ds, seg channel1
+	mov ax, seg channel1
+	mov ds, ax
 	mov si, offset channel1
 	mov cx, 256
 	rep movsb
+
+	pop cx
+	pop bx
+	pop ax
 
 	mov sp, bp
 	pop bp
@@ -288,7 +311,7 @@ changeColorSpace PROC FAR
 	mov ax, seg channel1
 	mov es, ax
 	mov ds, ax
-	mov cx, 0 ; Counter: 0 -> 256
+	xor cx, cx ; Counter: 0 -> 256
 ForLoop:	
 	; Load current Y, Cb and Cr value on the stack 
 	mov si, offset channel1 ; Y
@@ -388,6 +411,11 @@ clipValue ENDP
 setPalette PROC FAR
 	push bp
 	mov bp, sp
+
+	push ax
+	push bx
+	push cx
+	push dx
 	
 	; Equivalent C++ Code:
 	; for (int r = 0; r <= 60; r = r + 12) {
@@ -406,7 +434,7 @@ setPalette PROC FAR
 	
 	mov bx, 0 	; Counter First loop
 @1:
-	mov cx, 0
+	xor cx, cx
 @2:
 	mov dx, 0		; Counter Third loop
 @3:
@@ -431,6 +459,11 @@ setPalette PROC FAR
 	add bx, 12
 	cmp bx, 72
 	jne @1
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	
 	mov sp, bp
 	pop bp
@@ -443,10 +476,20 @@ RenderScreen PROC FAR
 	push bp
 	mov bp, sp
 
+	push ax
+	push bx
+	push cx
+
 	; Set the video mode
 	mov ax, 13h
 	xor ah, ah
-	int 10h
+	push ax
+	call setVideoMode
+	mov bx, seg oldVideoMode
+	mov es, bx
+	mov di, offset oldVideoMode
+	mov es:[di], al
+
 
 	; Set the palette
 	mov ax, seg RGBPalette
@@ -469,10 +512,56 @@ RenderScreen PROC FAR
 	mov cx, 64000
 	rep movsb
 
+	pop cx
+	pop bx
+	pop ax
+
 	mov sp, bp
 	pop bp
 	ret 0 
 RenderScreen ENDP
+
+; Restores the screen back to normal text mode.
+; No arguments on the stack.
+RestoreScreen PROC FAR
+	push bp
+	mov bp, sp
+
+	mov ax, seg oldVideoMode
+	mov ds, ax
+	mov si, offset oldVideoMode
+	mov al, ds:[si]
+	xor ah, ah
+	push ax
+	call setVideoMode	
+
+	mov sp, bp
+	pop bp
+	ret 0
+RestoreScreen ENDP
+
+; Set the video mode and returns the previous mode in AL.
+setVideoMode PROC NEAR
+	push	bp				; save dynamic link
+	mov		bp, sp			; update bp
+	push	bx
+	
+	mov		ah, 0fh			; get current video mode in al
+	int		10h
+	
+	mov		bx, ax
+	
+	mov		ax, [bp + 4][0]	; get requested mode
+	xor		ah, ah			; function 0
+	int		10h
+	
+	mov		ax, bx
+	
+	pop		bx
+	pop		bp	
+	ret	2				; return
+setVideoMode ENDP
+
 
 ; Returns the index in ax of the 8-bit color in the palette that is the closest to the specified RGB-values
 ; Arguments on the stack:
