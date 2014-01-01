@@ -4,7 +4,7 @@ include SHOW.INC
 
 .DATA
 	public RGBPalette ; For testing purposes
-	RGBPalette db 756 dup(?)
+	RGBPalette db 756 dup(?) ; 252 colors
 	
 	public channel1, channel2, channel3
 	channel1 db 256 dup(?) ; Used for Y and R values
@@ -251,8 +251,8 @@ Start_Loop:
 	ret 8
 ProcessBlockC ENDP
 
-; Procedure that writes the corresponding color indexes of the RGB values in the
-; screenBuffer.
+; Procedure that calculates the corresponding color indexes of the RGB values 
+; and writes them in the screenBuffer.
 ; Arguments on the stack:
 ; Argument 1 = MDU number
 WriteToScreenBuffer PROC FAR
@@ -568,10 +568,65 @@ setVideoMode ENDP
 ; Argument 1 = R-value
 ; Argument 2 = G-value
 ; Argument 3 = B-value
-findClosestColorIndex PROC NEAR
+findClosestColorIndex PROC FAR
 	push bp
 	mov bp, sp
+
+	push bx
+	push cx
+	push dx
+
+	; Calculate closest R-index
+	xor dx, dx
+	mov ax, [bp + 6][4]
+	mov bx, 12
+	div bx ; AL = AX / Op and AH = Rest
+	cmp ah, 6
+	jle @F
+	inc al ; rounding
+@@:
+	xor ah, ah
+	push ax ; save index of R value on the stack
+
+	; Calculate the closest G-index
+	mov ax, [bp + 6][2]
+	mov bx, 12
+	div bx ; AL = AX / Op and AH = Rest
+	cmp ah, 6
+	jle @F
+	inc al
+@@:
+	xor ah, ah
+	push ax ; save index of G value on the stack
+
+	; Calculate the closest B-index
+	mov ax, [bp + 6][0]
+	mov bx, 10
+	div bx ; AL = AX / Op and AH = Rest
+	cmp ah, 5
+	jle @F
+	inc al
+@@:
+	xor ah, ah
+	push ax ; save index of B value on the stack
+
+	; Calculate index in palette of 252 colors
+	; Calc: index = r_index * g_count * b_count + g_index * b_count + b_index 
+	pop dx ; dx = index = b_index
+	pop ax ; ax = g_index
+	mov bx, 7
+	mul bx ; ax = g_index * b_count
+	add dx, ax ; dx = g_index * b_count + b_index
+	pop ax ; ax = r_index
+	mov bx, 6
+	mul bx ; ax = r_index * g_count
+	mov bx, 7
+	mul bx ; ax = r_index * g_count * b_count
 	
+	pop dx
+	pop cx
+	pop bx
+
 	mov sp, bp
 	pop bp
 	ret 6
