@@ -259,7 +259,6 @@ findCode PROC NEAR
 			mov [shift], cl
 			shr bx, 1
 			shr si, 1
-			inc si
 			add si, [bp][8]	; HufDCd
 			mov bl, [si][bx]	; put the symbol in bl ( always 4 bits 0 and then 4 bits that give the length of the DC-value)
 			call MakeCalibratedWord
@@ -374,6 +373,10 @@ findCode PROC NEAR
 					je nextLengthAgain
 					jmp nextCode
 		EOB:
+				inc dh
+				mov cl, [shift]
+				add cl, dh
+				mov [shift], cl
 				xor dh, dh
 				mov di, dx
 				add di, [bp][18]	; offsetOut
@@ -383,9 +386,6 @@ findCode PROC NEAR
 					add dx, 2
 					cmp dx, 128		; check index running over inputIDCT
 					jne write0
-				mov cl, [shift]
-				add cl, 4
-				mov [shift], cl
 		DONE:
 
 	pop		es

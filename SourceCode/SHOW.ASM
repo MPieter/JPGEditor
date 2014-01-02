@@ -10,6 +10,7 @@ include SHOW.INC
 	channel1 db 256 dup(?) ; Used for Y and R values
 	channel2 db 256 dup(?) ; Used for U(Cb) and G values
 	channel3 db 256 dup(?) ; Used for V(Cr) and B values
+	channel4 db 256 dup(?) ; Used for the index in the palette
 
 	oldVideoMode db ?
 
@@ -37,8 +38,10 @@ showImage PROC FAR
 	
 	call setPalette
 
-	; call changeColorSpace
+	call changeColorSpace
  
+ 	call calcChannel4
+
  	mov ax, [bp + 6][0]
  	push ax
 	call WriteToScreenBuffer
@@ -251,10 +254,9 @@ Start_Loop:
 	ret 8
 ProcessBlockC ENDP
 
-; Procedure that calculates the corresponding color indexes of the RGB values 
-; and writes them in the screenBuffer.
+; Procedure that writes the content of channel 4 in the screenBuffer.
 ; Arguments on the stack:
-; Argument 1 = MDU number
+; Argument 1 = MDU number (zero-based)
 WriteToScreenBuffer PROC FAR
 	push bp
 	mov bp, sp
@@ -262,26 +264,47 @@ WriteToScreenBuffer PROC FAR
 	push ax
 	push bx
 	push cx
-	
-	; findClosestIndex
+	push dx
 
-	; TODO
-	; calculate offset in YStream, CbStream, CrStream depending on the value of the MDU number
+	; Calculate offset in screenBuffer	
 	mov ax, [bp + 6][0]
-	mov bx, 256 ; number of bytes per block
-	mul bx ; result of calculation: DX:AX = AX * Op
+	mov bx, 20 ; 20 MDU per row
+	xor dx, dx
+	div bx ; AX = DX:AX / Op & DX = Rest
+	push dx ; Save rest 
+	mov bx, 256
+	mul bx ; AX = Quotient * 256
+	mov bx, 20
+	mul bx ; AX = Quotient * 256 * 20 
+	pop dx ; restore rest
+	push ax ; save the first part of the offset
+	mov ax, dx ; Rest in ax
+	mov bx, 16
+	mul bx ; AX = 16 * rest
+	mov dx, ax
+	pop ax
+	add ax, dx ; The total offset in ax
 
+	; Set up ds and es registers
 	mov bx, seg screenBuffer
 	mov es, bx
 	mov di, offset screenBuffer
 	add di, ax
 
-	mov ax, seg channel1
+	mov ax, seg channel4
 	mov ds, ax
-	mov si, offset channel1
-	mov cx, 256
-	rep movsb
+	mov si, offset channel4
 
+	mov cx, 16 ; 16 rows
+ForLoop:
+	push cx
+	mov cx, 16 ; 16 columns
+	rep movsb
+	pop cx
+	add di, 304 ; 304 = 16px * 19
+	loop ForLoop
+
+	pop dx
 	pop cx
 	pop bx
 	pop ax
@@ -297,17 +320,22 @@ WriteToScreenBuffer ENDP
 changeColorSpace PROC FAR
 	push bp
 	mov bp, sp
+
+	push ax
+	push bx
+	push cx
+	push dx
 	
-	; Formula for calculation RGB from YUV-values
-	; R = 1.164(Y - 16) + 1.596(V - 128)
-	; G = 1.164(Y - 16) - 0.813(V - 128) 	- 0.391(U - 128)
-	; B = 1.164(Y - 16)       						+ 2.018(U - 128)
+	; Formula for calculation RGB from YCbCr-values
+	; R = Y 									+ 1.402 ( Cr - 128)
+	; G = Y 	- 0.34414 ( Cb - 128 )			- 0.71414 ( Cr - 128 )
+	; B = Y 	+ 1.772 ( Cb - 128 )
 	
 	; For precision we use following version 
 	; (the numbers are then rounded to their nearest integers):
-	; 100*R = 116.4(Y - 16) + 159.6(Cr - 128)
-	; 100*G = 116.4(Y - 16) - 81.3(Cr - 128) 	- 39.1(Cb - 128)
-	; 100*B = 116.4(Y - 16)       						+ 201.8(Cb - 128)
+	; 100*R = 100 * Y 							+ 140 ( Cr - 128)
+	; 100*G = 100 * Y 	- 34 ( Cb - 128 )		- 71 ( Cr - 128 )
+	; 100*B = 100 * Y 	+ 177 ( Cb - 128 )
 	mov ax, seg channel1
 	mov es, ax
 	mov ds, ax
@@ -329,19 +357,21 @@ ForLoop:
 	mov ax, ds:[si]
 	push ax
 
-	; calculate R: 100*R = 116(Y - 16) + 160(Cr - 128)
-	mov ax, [bp - 2] 		; AX = Y ; TODO 
-	sub ax, 16				; AX = Y - 16
-	mov dx, 116
-	mul dx ; result of calculation: DX:AX = AX * Op = 116 * ( Y - 16 )
+	; calculate R: 100 * R = 100 * Y + 140 ( Cr - 128)
+	mov ax, [bp - 2] 		; AX = Y
+	mov dx, 100
+	mul dx ; result of calculation: DX:AX = AX * Op = 100 * Y
 	push ax
 	mov ax, [bp - 6]		; AX = Cr
 	sub ax, 128				; AX = Cr - 128
-	mov dx, 160	
-	mul dx					; AX = 160 * ( Cr - 128 )
-	mov dx, ax 				; DX = 160 * ( Cr - 128 )
-	pop ax 					; AX = 116  * (Y - 16)
-	add ax, dx				; AX = 116 * ( Y - 16 ) + 160 * ( Cr - 128 )
+	mov dx, 140	
+	mul dx					; AX = 140 * ( Cr - 128 )
+	mov dx, ax 				; DX = 140 * ( Cr - 128 )
+	pop ax 					; AX = 100 * Y
+	add ax, dx				; AX = 100 * Y + 140 ( Cr - 128)
+	xor dx, dx
+	mov bx, 100
+	div bx
 	mov di, offset channel1
 	add di, cx
 	mov es:[di], ax			; Save R-value
@@ -350,50 +380,62 @@ ForLoop:
 Intermediate:
 	jne ForLoop ; intermediate label because the for-loop contains to many instructions
 
-	; calculate G: 100*G = 116(Y - 16) - 81(Cr - 128) 	- 39(Cb - 128)
+	; calculate G: 100*G = 100 * Y - 34 ( Cb - 128 ) - 71 ( Cr - 128 )
 	mov ax, [bp - 2] 		; AX = Y
-	sub ax, 16				; AX = Y - 16
-	mov dx, 116
-	mul dx					; AX = 116 * ( Y - 16)
+	mov dx, 100
+	mul dx					; AX = 100 * Y
 	push ax
 	mov ax, [bp - 6]		; AX = Cr
 	sub ax, 128				; AX = Cr - 128
-	mov dx, 81
-	mul dx					; AX = 81 * ( Cr - 128 )
+	mov dx, 71
+	mul dx					; AX = 71 * ( Cr - 128 )
 	pop dx
-	sub dx, ax				; DX = 116 * ( Y - 16 ) - 81 * ( Cr - 128)
+	sub dx, ax				; DX = 100 * Y - 71 * ( Cr - 128)
 	push dx
 	mov ax, [bp - 4]		; AX = Cb
 	sub ax, 128				; AX = Cb - 128
-	mov dx, 39
-	mul dx						; AX = 39 * ( Cb - 128 )
+	mov dx, 34
+	mul dx					; AX = 34 * ( Cb - 128 )
 	mov dx, ax				; DX = 39 * ( Cb - 128 )
 	pop ax
-	sub ax, dx				; AX = 116 * ( Y - 16 ) - 81 * ( Cr - 128) - 39 * ( Cb - 128 )
+	sub ax, dx				; AX = 100 * ( Y - 16 ) - 71 * ( Cr - 128) - 34 * ( Cb - 128 )
+	xor dx, dx
+	mov bx, 100
+	div bx
 	mov di, offset channel2
 	add di, cx
-	mov es:[di], ax 		; Save G-value on the stack
+	mov es:[di], ax 		; Save G-value
 	
-	; calculate B: 100*B = 116(Y - 16)       						+ 202(Cb - 128)
+	; calculate B: 100*B = 100 * Y 	+ 177 ( Cb - 128 )
 	mov ax, [bp - 2] 		; AX = Y
-	sub ax, 16				; AX = Y - 16
-	mov dx, 116
-	mul dx 					; AX = 116 * ( Y - 16 )
+	mov dx, 100
+	mul dx 					; AX = 100 * Y
 	push ax
 	mov ax, [bp - 4] 		; AX = Cb
 	sub ax, 128				; AX = Cb - 128
-	mov dx, 202
-	mul dx						; AX = 202 * ( Cb - 128 )
+	mov dx, 177
+	mul dx					; AX = 177 * ( Cb - 128 )
 	pop dx
-	add ax, dx				; DX = 116 * ( Y - 16 ) + 202 * ( Cb - 128 )
+	add ax, dx				; DX = 100 * Y + 177 * ( Cb - 128 )
+	xor dx, dx
+	mov bx, 100
+	div bx
 	mov di, offset channel3
 	add di, cx
-	mov es:[di], ax 		; Save B-value on the stack
+	mov es:[di], ax 		; Save B-value
+
+	pop ax ; Remove 3 initial values on the stack at beginning for loop
+	pop ax
+	pop ax
 
 	inc cx
 	cmp cx, 256
 	jne Intermediate
 	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 		
 	mov sp, bp
 	pop bp
@@ -469,6 +511,34 @@ setPalette PROC FAR
 	pop bp
 	ret 0
 setPalette ENDP
+
+; Procedure that Initializes the screenbuffer with zeros.
+; No arguments on the stack.
+ClearScreenBuffer PROC FAR
+	push bp
+	mov bp, sp
+
+	push ax
+	push cx
+	push es
+	push di
+
+	mov ax, seg screenBuffer
+	mov es, ax
+	mov di, offset screenBuffer
+	mov cx, 32000
+	xor ax, ax
+	rep stosw
+
+	pop di
+	pop es
+	pop cx
+	pop ax
+
+	mov sp, bp
+	pop bp
+	ret 0
+ClearScreenBuffer ENDP
 
 ; Procedures that writes the screenbuffer to the graphics memory.
 ; No arguments on the stack.
@@ -562,8 +632,58 @@ setVideoMode PROC NEAR
 	ret	2				; return
 setVideoMode ENDP
 
+; Procedure that calculates the color indexes of RGB-values in the palette.
+; The result is stored in channel 4.
+; No arguments on the stack
+calcChannel4 PROC FAR
+	push bp
+	mov bp, sp
 
-; Returns the index in ax of the 8-bit color in the palette that is the closest to the specified RGB-values
+	push ax
+	push bx
+	push cx
+
+	mov ax, seg channel1
+	mov es, ax
+	mov ds, ax
+	mov di, offset channel4
+	xor cx, cx ; Counter: 0 -> 256
+ForLoop:	
+	; Load current Y, Cb and Cr value on the stack 
+	mov si, offset channel1 ; Y
+	add si, cx
+	mov ax, ds:[si]
+	push ax
+
+	mov si, offset channel2 ; Cb
+	add si, cx
+	mov ax, ds:[si]
+	push ax
+
+	mov si, offset channel3 ; Cr
+	add si, cx
+	mov ax, ds:[si]
+	push ax
+
+	call findClosestColorIndex
+	stosw
+
+	inc cx
+	cmp cx, 256
+	jne ForLoop
+	
+	pop cx
+	pop bx
+	pop ax
+
+	mov sp, bp
+	pop bp
+	ret 0
+calcChannel4 ENDP
+
+
+; Returns the index in ax of the 8-bit color in the palette that is the 
+; closest to the specified RGB-values. The index is zero based.
 ; Arguments on the stack:
 ; Argument 1 = R-value
 ; Argument 2 = G-value
@@ -580,34 +700,33 @@ findClosestColorIndex PROC FAR
 	xor dx, dx
 	mov ax, [bp + 6][4]
 	mov bx, 12
-	div bx ; AL = AX / Op and AH = Rest
-	cmp ah, 6
+	div bx ; AX = DX:AX / Op and DX = Rest
+	cmp dx, 6
 	jle @F
-	inc al ; rounding
+	inc ax ; rounding
 @@:
-	xor ah, ah
 	push ax ; save index of R value on the stack
 
 	; Calculate the closest G-index
+	xor dx, dx
 	mov ax, [bp + 6][2]
 	mov bx, 12
-	div bx ; AL = AX / Op and AH = Rest
-	cmp ah, 6
+	div bx ; AX = DX:AX / Op and DX = Rest
+	cmp dx, 6
 	jle @F
-	inc al
+	inc ax
 @@:
-	xor ah, ah
 	push ax ; save index of G value on the stack
 
 	; Calculate the closest B-index
+	xor dx, dx
 	mov ax, [bp + 6][0]
 	mov bx, 10
-	div bx ; AL = AX / Op and AH = Rest
-	cmp ah, 5
+	div bx ; AX = DX:AX / Op and DX = Rest
+	cmp dx, 5
 	jle @F
-	inc al
+	inc ax
 @@:
-	xor ah, ah
 	push ax ; save index of B value on the stack
 
 	; Calculate index in palette of 252 colors
@@ -618,10 +737,13 @@ findClosestColorIndex PROC FAR
 	mul bx ; ax = g_index * b_count
 	add dx, ax ; dx = g_index * b_count + b_index
 	pop ax ; ax = r_index
+	push dx ; save intermediate value
 	mov bx, 6
 	mul bx ; ax = r_index * g_count
 	mov bx, 7
 	mul bx ; ax = r_index * g_count * b_count
+	pop dx
+	add ax, dx ; ax = r_index * g_count * b_count + g_index * b_count + b_index
 	
 	pop dx
 	pop cx

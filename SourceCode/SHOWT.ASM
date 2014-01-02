@@ -18,7 +18,8 @@ include SHOW.INC
 	msgColorG db 'The G-values: $'
 	msgColorB db 'The B-values: $'
 	msgPalette db 'Executing setPalette: $'
-	
+	msgRGBPair db 'The tested Pair: $'
+	msgResult db 'The result: $'
 .CODE
 
 ; Test code for the procedure UpSampling
@@ -257,5 +258,48 @@ RenderScreenTest PROC FAR
 	pop bp
 	ret 0
 RenderScreenTest ENDP
+
+; Test code for the procedure findClosestColorIndex
+; No arguments on the stack
+findClosestColorIndexTest PROC FAR
+	push bp
+	mov bp, sp
+
+	mov ax, 14
+	push ax
+	mov ax, 14
+	push ax
+	mov ax, 3
+	push ax
+	call findClosestColorIndex
+	push ax ; save result
+
+	mov ax, offset msgRGBPair
+	push ax
+	call PrintString
+	mov ax, 14
+	push ax
+	call PrintNumber
+	call PrintSpace
+	mov ax, 14
+	push ax
+	call PrintNumber
+	call PrintSpace
+	mov ax, 3
+	push ax
+	call PrintNumber
+	call PrintSpace
+
+	mov ax, offset msgResult
+	push ax
+	call PrintString
+	pop ax
+	push ax
+	call PrintNumber
+
+	mov sp, bp
+	pop bp
+	ret 0
+findClosestColorIndexTest ENDP
 
 END

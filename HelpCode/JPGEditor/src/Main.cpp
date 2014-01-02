@@ -14,6 +14,8 @@
 
 int main() {
 	UpSampleY();
+
+	createPalette();
 }
 
 

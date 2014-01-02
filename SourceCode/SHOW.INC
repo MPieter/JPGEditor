@@ -3,8 +3,10 @@ externdef showImage:FAR
 externdef UpSampling:FAR
 externdef changeColorSpace:FAR
 externdef setPalette:FAR
+externdef ClearScreenBuffer:FAR
 externdef RenderScreen:FAR
 externdef RestoreScreen:FAR
+externdef findClosestColorIndex:FAR
 
 ; Data (This is made available only for testing. Other methods schould not modify these blocks)
 externdef RGBPalette:BYTE
