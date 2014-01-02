@@ -383,6 +383,7 @@ findCode PROC NEAR
 				xor cx, cx
 				write0:
 					mov [di], cx
+					add di, 2
 					add dx, 2
 					cmp dx, 128		; check index running over inputIDCT
 					jne write0

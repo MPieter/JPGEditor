@@ -805,6 +805,8 @@ MatrixTranspose PROC FAR
 	push bx
 	push cx
 	push dx
+	push ds
+	push es
 
 	mov ds, [bp + 6][6] ; First Argument
 	mov si, [bp + 6][4] ; Second argument
@@ -840,6 +842,8 @@ MatrixTranspose PROC FAR
 	cmp cx, 64
 	jne @B
 	
+	pop es
+	pop ds
 	pop dx
 	pop cx
 	pop bx
@@ -864,12 +868,15 @@ MatrixScale PROC FAR
 	push bx
 	push cx
 	push dx
+	push ds
+	push es
 	
 	mov ds, [bp + 6][2]
 	mov si, [bp + 6][0]
 	mov es, [bp + 6][2] ; desitnation is the same as the source
 	mov di, si
-	
+	cld
+
 	mov cx, 64
 	xor dx, dx
 Start_Loop:
@@ -892,6 +899,8 @@ Start_Loop:
 	stosw
 	loop Start_Loop
 
+	pop es
+	pop ds
 	pop dx
 	pop cx
 	pop bx

@@ -55,11 +55,6 @@ include ZIGZAGT.INC
 ;public inputiDCT_Block, outputiDCT_Block
 	inputiDCT dw 384 dup (?)
 	msgDataCX db 'The value of CX: $'
-	msgentropy db 'Entropy: $'
-	msgzigzag db 'Zigzag: $'
-	msgDequant db 'Dequant: $'
-	msgIDCT db 'iDCT: $'
-	msgShow db 'Showing: $'
 		
 .CODE        ; code segment
 
@@ -85,7 +80,6 @@ NEWMDU:
  	mov ax, offset inputiDCT
  	push ax
  	call zigzag				; the values of the 6 matrix are disposed in zigzag sequence.
-
 
 	mov ax, seg inputiDCT
 	push ax

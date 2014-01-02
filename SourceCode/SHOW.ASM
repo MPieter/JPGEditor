@@ -1,5 +1,6 @@
 .MODEL large
 
+include HELPERS.INC
 include SHOW.INC
 
 .DATA
@@ -35,6 +36,16 @@ showImage PROC FAR
 	mov ax, [bp + 6][2]
 	push ax
 	call UpSampling
+
+	;mov ax, seg channel1
+	;push ax
+	;mov ax, offset channel1
+	;push ax
+	;mov ax, 256
+	;push ax
+	;mov ax, 16
+	;push ax
+	;call PrintByteSegment
 	
 	call setPalette
 
@@ -177,7 +188,7 @@ ProcBlockY PROC FAR
 	push cx ; save counter outer for loop
 	xor cx, cx ; counter inner for loop
 @Inner:	
-	mov ax, [bp - 2] ; Counter outer for loop in ax
+	mov ax, [bp - 10] ; Counter outer for loop in ax
 	mov bx, 8
 	mul bx 			; ax = i * 8
 	add ax, cx       ; ax = i *8 + j
@@ -358,11 +369,11 @@ ForLoop:
 	push ax
 
 	; calculate R: 100 * R = 100 * Y + 140 ( Cr - 128)
-	mov ax, [bp - 2] 		; AX = Y
+	mov ax, [bp - 10] 		; AX = Y
 	mov dx, 100
 	mul dx ; result of calculation: DX:AX = AX * Op = 100 * Y
 	push ax
-	mov ax, [bp - 6]		; AX = Cr
+	mov ax, [bp - 14]		; AX = Cr
 	sub ax, 128				; AX = Cr - 128
 	mov dx, 140	
 	mul dx					; AX = 140 * ( Cr - 128 )
@@ -381,18 +392,18 @@ Intermediate:
 	jne ForLoop ; intermediate label because the for-loop contains to many instructions
 
 	; calculate G: 100*G = 100 * Y - 34 ( Cb - 128 ) - 71 ( Cr - 128 )
-	mov ax, [bp - 2] 		; AX = Y
+	mov ax, [bp - 10] 		; AX = Y
 	mov dx, 100
 	mul dx					; AX = 100 * Y
 	push ax
-	mov ax, [bp - 6]		; AX = Cr
+	mov ax, [bp - 14]		; AX = Cr
 	sub ax, 128				; AX = Cr - 128
 	mov dx, 71
 	mul dx					; AX = 71 * ( Cr - 128 )
 	pop dx
 	sub dx, ax				; DX = 100 * Y - 71 * ( Cr - 128)
 	push dx
-	mov ax, [bp - 4]		; AX = Cb
+	mov ax, [bp - 12]		; AX = Cb
 	sub ax, 128				; AX = Cb - 128
 	mov dx, 34
 	mul dx					; AX = 34 * ( Cb - 128 )
@@ -407,11 +418,11 @@ Intermediate:
 	mov es:[di], ax 		; Save G-value
 	
 	; calculate B: 100*B = 100 * Y 	+ 177 ( Cb - 128 )
-	mov ax, [bp - 2] 		; AX = Y
+	mov ax, [bp - 10] 		; AX = Y
 	mov dx, 100
 	mul dx 					; AX = 100 * Y
 	push ax
-	mov ax, [bp - 4] 		; AX = Cb
+	mov ax, [bp - 12] 		; AX = Cb
 	sub ax, 128				; AX = Cb - 128
 	mov dx, 177
 	mul dx					; AX = 177 * ( Cb - 128 )
