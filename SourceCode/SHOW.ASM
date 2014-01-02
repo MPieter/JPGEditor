@@ -40,16 +40,6 @@ showImage PROC FAR
 	call setPalette
 
 	call changeColorSpace
- 
-	;mov ax, seg channel2
-	;push ax
-	;mov ax, offset channel3
-	;push ax
-	;mov ax, 256
-	;push ax
-	;mov ax, 16
-	;push ax
-	;call PrintByteSegment
 	
  	call calcChannel4
 
@@ -660,7 +650,7 @@ calcChannel4 PROC FAR
 	push bx
 	push cx
 
-	mov ax, seg channel1
+	mov ax, seg channel4
 	mov es, ax
 	mov ds, ax
 	mov di, offset channel4
@@ -669,21 +659,24 @@ ForLoop:
 	; Load current Y, Cb and Cr value on the stack 
 	mov si, offset channel1 ; Y
 	add si, cx
-	mov ax, ds:[si]
+	xor ah, ah
+	mov al, ds:[si]
 	push ax
 
 	mov si, offset channel2 ; Cb
 	add si, cx
-	mov ax, ds:[si]
+	xor ah, ah
+	mov al, ds:[si]
 	push ax
 
 	mov si, offset channel3 ; Cr
 	add si, cx
-	mov ax, ds:[si]
+	xor ah, ah
+	mov al, ds:[si]
 	push ax
 
 	call findClosestColorIndex
-	stosw
+	stosb
 
 	inc cx
 	cmp cx, 256
@@ -716,34 +709,22 @@ findClosestColorIndex PROC FAR
 	; Calculate closest R-index
 	xor dx, dx
 	mov ax, [bp + 6][4]
-	mov bx, 12
+	mov bx, 48 ; (= 4 * 12) Source in range 0 - 255 while palette has range 0 - 63 ( diff. factor 4). R varies in steps of 12 (see proc. setPalette)
 	div bx ; AX = DX:AX / Op and DX = Rest
-	cmp dx, 6
-	jle @F
-	inc ax ; rounding
-@@:
 	push ax ; save index of R value on the stack
 
 	; Calculate the closest G-index
 	xor dx, dx
 	mov ax, [bp + 6][2]
-	mov bx, 12
+	mov bx, 48
 	div bx ; AX = DX:AX / Op and DX = Rest
-	cmp dx, 6
-	jle @F
-	inc ax
-@@:
 	push ax ; save index of G value on the stack
 
 	; Calculate the closest B-index
 	xor dx, dx
 	mov ax, [bp + 6][0]
-	mov bx, 10
+	mov bx, 40
 	div bx ; AX = DX:AX / Op and DX = Rest
-	cmp dx, 5
-	jle @F
-	inc ax
-@@:
 	push ax ; save index of B value on the stack
 
 	; Calculate index in palette of 252 colors
@@ -751,7 +732,9 @@ findClosestColorIndex PROC FAR
 	pop dx ; dx = index = b_index
 	pop ax ; ax = g_index
 	mov bx, 7
+	push dx ; save dx for multiplication
 	mul bx ; ax = g_index * b_count
+	pop dx
 	add dx, ax ; dx = g_index * b_count + b_index
 	pop ax ; ax = r_index
 	push dx ; save intermediate value
