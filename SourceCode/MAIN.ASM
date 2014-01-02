@@ -39,8 +39,8 @@ include ZIGZAGT.INC
 	HufACCl db 16 DUP (?)				; Huffman Tables for AC values of the chrominance (lengths)
 	HufACCd db 162 DUP (?)			; Huffman Tables for AC values of the chrominance (data)
 	Raw db 50000 DUP (?)				; Raw BITstream
-	;BESTANDSNAAM	DB "Test32~1.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
-	BESTANDSNAAM DB "TestW.jpg",0						; The name have to be maximum 8 chars long.	
+	BESTANDSNAAM	DB "Test32~1.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
+	;BESTANDSNAAM DB "TestW.jpg",0						; The name have to be maximum 8 chars long.	
 
 ;------ DATA used among other in EXPHT.ASM
 ;public HcodeACL, HcodeACC, HcodeDCL, HcodeDCC

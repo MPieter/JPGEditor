@@ -157,6 +157,15 @@ PrintWordSegment ENDP
 PrintByteSegment PROC FAR
 	push bp
 	mov bp, sp
+
+	push ax
+	push bx
+	push cx
+	push dx
+	push ds
+	push es
+	push si
+	push di
 	
 	; Print result
 	mov ax, [bp + 6][6]
@@ -178,6 +187,15 @@ PrintByteSegment PROC FAR
 	mov bx, [bp + 6][0]
 ContinueLoop:
 	loop @B
+
+	pop di
+	pop si
+	pop es
+	pop ds
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	
 	mov sp, bp
 	pop bp

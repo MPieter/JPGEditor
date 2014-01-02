@@ -37,9 +37,13 @@ showImage PROC FAR
 	push ax
 	call UpSampling
 
-	;mov ax, seg channel1
+	call setPalette
+
+	call changeColorSpace
+ 
+	;mov ax, seg channel2
 	;push ax
-	;mov ax, offset channel1
+	;mov ax, offset channel3
 	;push ax
 	;mov ax, 256
 	;push ax
@@ -47,10 +51,6 @@ showImage PROC FAR
 	;push ax
 	;call PrintByteSegment
 	
-	call setPalette
-
-	call changeColorSpace
- 
  	call calcChannel4
 
  	mov ax, [bp + 6][0]
@@ -355,17 +355,20 @@ ForLoop:
 	; Load current Y, Cb and Cr value on the stack 
 	mov si, offset channel1 ; Y
 	add si, cx
-	mov ax, ds:[si]
+	xor ah, ah
+	mov al, ds:[si]
 	push ax
 
 	mov si, offset channel2 ; Cb
 	add si, cx
-	mov ax, ds:[si]
+	xor ah, ah
+	mov al, ds:[si]
 	push ax
 
 	mov si, offset channel3 ; Cr
 	add si, cx
-	mov ax, ds:[si]
+	xor ah, ah
+	mov al, ds:[si]
 	push ax
 
 	; calculate R: 100 * R = 100 * Y + 140 ( Cr - 128)
@@ -385,7 +388,8 @@ ForLoop:
 	div bx
 	mov di, offset channel1
 	add di, cx
-	mov es:[di], ax			; Save R-value
+	xor ah, ah
+	mov es:[di], al			; Save R-value
 	mov bx, 1
 	cmp bx, bx ; Set zero flag (see label: Intermediate)
 Intermediate:
@@ -415,7 +419,8 @@ Intermediate:
 	div bx
 	mov di, offset channel2
 	add di, cx
-	mov es:[di], ax 		; Save G-value
+	xor ah, ah
+	mov es:[di], al 		; Save G-value
 	
 	; calculate B: 100*B = 100 * Y 	+ 177 ( Cb - 128 )
 	mov ax, [bp - 10] 		; AX = Y
@@ -433,7 +438,8 @@ Intermediate:
 	div bx
 	mov di, offset channel3
 	add di, cx
-	mov es:[di], ax 		; Save B-value
+	xor ah, ah
+	mov es:[di], al 		; Save B-value
 
 	pop ax ; Remove 3 initial values on the stack at beginning for loop
 	pop ax
