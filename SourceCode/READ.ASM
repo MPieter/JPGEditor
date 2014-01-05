@@ -362,6 +362,7 @@ push bp
 mov bp, sp
 	push di
 	push cx
+	push dx
 	push si
 		mov si, [bp][4]
 		
@@ -373,10 +374,16 @@ mov bp, sp
 		call JumpBytes
 		mov si, ax
 		
-	mov di, 0
+	xor di, di
 	
 	PutAByte:
 			MOV al, READBUFFER[SI]
+			; check for special case ff 00
+			
+			cmp al, 0ffh
+			jne notff
+				inc si
+			notff:
 			mov Raw[DI], al
 			INC SI			; We go further in the READBUFFER
 			INC DI
@@ -388,6 +395,7 @@ mov bp, sp
 			jz Done				; Check if we have read the all file
 			MOV CX,AX			
 			sub si, 512	
+			xor ah, ah
 			jmp	PutAByte
 		
 		Done:
@@ -397,6 +405,7 @@ mov bp, sp
 			
 		mov ax, di ; ax gives than the length of the data put in RAW
 	pop si
+	pop dx
 	pop cx
 	pop di
 mov sp, bp

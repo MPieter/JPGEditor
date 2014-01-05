@@ -38,9 +38,9 @@ include ZIGZAGT.INC
 	HufACLd db 162 DUP (?)				; Huffman Tables for AC values of the light intensity (data)
 	HufACCl db 16 DUP (?)				; Huffman Tables for AC values of the chrominance (lengths)
 	HufACCd db 162 DUP (?)			; Huffman Tables for AC values of the chrominance (data)
-	Raw db 50000 DUP (?)				; Raw BITstream
-	;BESTANDSNAAM	DB "Test32~1.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
-	BESTANDSNAAM DB "TestW.jpg",0						; The name have to be maximum 8 chars long.	
+	Raw db 18000 DUP (?)				; Raw BITstream
+	BESTANDSNAAM	DB "Test2.jpg",0		; Name of the JPGFile, followed by a 0, imposed convention for the use of read function.
+	; BESTANDSNAAM DB "TestW.jpg",0						; The name have to be maximum 8 chars long.	
 
 ;------ DATA used among other in EXPHT.ASM
 ;public HcodeACL, HcodeACC, HcodeDCL, HcodeDCC
@@ -55,7 +55,7 @@ include ZIGZAGT.INC
 ;public inputiDCT_Block, outputiDCT_Block
 	inputiDCT dw 384 dup (?)
 	msgDataCX db 'The value of CX: $'
-		
+	msg db ", $"
 .CODE        ; code segment
 
 ; ----------------------------- CODE STARTS HERE -------------------------------
@@ -69,12 +69,12 @@ main:
  	call expansionHT
 
 	call ClearScreenBuffer
-
+	
 	;--- Translate, part by part, the raw data in image block.
  	xor cx, cx
 NEWMDU:
  	call entropyDecoding 	; the 6 matrix of 64 words are updated (in inputiDCT) 
-
+				
  	mov ax, seg inputiDCT
  	push ax
  	mov ax, offset inputiDCT
@@ -94,21 +94,22 @@ NEWMDU:
 	call iDCT 				; iDCT_Block is performed on the 6 matrix
 
 	mov ax, seg inputiDCT
-	push ax
+	push ax		
 	mov ax, offset inputiDCT
 	push ax
 	push cx		; number of MDU (to give the emplacement of the MDU in the image)
 	call showImage
-		
+	
 	inc cx
 	mov ax, offset msgDataCX
 	push ax
 	call PrintString
 	push cx
 	call PrintNumber
-	cmp cx, 240 ; Our image is 320x200 pixels
+	cmp cx, 240	 ; Our image is 320x200 pixels
 				; If one MDU is 16x16 pixels it means that we will need 20x13=260 MDU to recomposed our picture.
 	jne NEWMDU
+		
 	; TODO: last 20 MDU fall of the screen
 
  	call RenderScreen

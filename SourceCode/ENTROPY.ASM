@@ -2,7 +2,7 @@
 include ENTROPY.INC
 include IDCT.INC
 include QUANT.INC
-
+include HELPERS.INC
 .DATA
 index dw offset raw	; Index representing the address of the byte we are working on in Raw
 shift db 0			; Shift gives the bit of the byte we are working on
@@ -22,7 +22,8 @@ PreviousDCCr dw 0
 PreviousDCCb dw 0
 msg4 db 0dh, 0ah, "$"
 msgNewMDU db "  New MDU ! :$"
-
+msgerror db " ERROR ! $"
+notEOB db " Not EOB $"
 .CODE
 entropyDecoding PROC FAR
 	push bp
@@ -208,7 +209,15 @@ findCode PROC NEAR
 	push	es
 	
 	call MakeCalibratedWord	; CalibratedWord is up to date
-	
+	cmp ah, 0
+	jne go
+						mov dx, offset msg4
+						mov ah, 09H
+						int 21H
+						xor ah, ah
+						push ax
+						call printnumber
+	go:
 	xor di, di	; di gives principally the length of the codes with witch we have to check.
 				; it also can contain the offset of the output.
 	xor bx, bx	; bx will run over all the codes of length di
@@ -266,6 +275,11 @@ findCode PROC NEAR
 			mov cl, 16
 			sub cl, bl	; cl= 16 - length of the non-zero value
 			shr ax, cl
+			; convert ax in 2's complement representation
+			push ax				; Value in JPG representation
+			xor bh, bh
+			push bx				; length of the value
+			call in2scmplt
 			mov di, [bp][16]	; PreviousDC
 			add ax, di
 			mov [bp][16], ax
@@ -327,6 +341,10 @@ findCode PROC NEAR
 			mov cl, 16
 			sub cl, bl	; cl= 16 - length of the non-zero value
 			shr ax, cl
+				push ax				; Value in JPG representation
+				xor bh, bh
+				push bx				; length of the value
+				call in2scmplt
 			mov di, [bp][18]	; offsetOut
 			add di, dx
 			mov [di], ax
@@ -337,7 +355,13 @@ findCode PROC NEAR
 			mov [shift], cl
 			call MakeCalibratedWord
 		cmp dl, 128		; check index running over inputIDCT
-		je DONE
+		je nEOB
+		jb go2
+						mov dx, offset msgerror
+						mov ah, 09H
+						int 21H
+						jmp nEOB
+		go2:
 		mov si, [bp][10]		; HcodeAC
 		mov di, [bp][14]		; HufACl
 		jmp nextLength
@@ -346,6 +370,11 @@ findCode PROC NEAR
 			jmp DecodeAwordAgain
 		EOB2:
 			jmp EOB
+		nEOB:
+						mov dx, offset notEOB
+						mov ah, 09H
+						int 21H
+						jmp DONE
 			
 		nextLengthAgain:
 		xor ah, ah
@@ -402,6 +431,49 @@ findCode PROC NEAR
 	ret 12
 findCode ENDP
 
+
+			
+; -----------------------------------------------------------
+; Push first ax: the word containing the value to put in 2's cmplt representation
+; Push then bx: contains the number of significant bit.
+; If ax is positive ( the non-zero value begins with a 1) then is the 2's complement representation the same as the jpg representation
+; If ax si negative (begins with a 0) then we have to transform the number (in jpg form) in his 2's complement representation.
+; ax as output will be the number under his 2's cmplt representation
+in2scmplt PROC NEAR
+	push bp
+	mov bp, sp
+	push bx
+	push cx
+	push dx
+	
+		mov ax, [bp][6]
+		mov dx, ax
+		mov bx, [bp][4]
+	
+; Check first if the first significant bit 0 is.
+		mov cl, bl
+		dec cl
+		shr dx, cl
+		cmp dx, 0		; dx is now 1 or 0
+		jne ok
+		; Let's transform this negative number in his 2's cmplt representation
+		not ax
+		mov cl, 16
+		sub cl, bl
+		shl ax, cl
+		shr ax, cl
+		dec ax
+		not ax
+		ok:
+		
+	pop dx
+	pop cx
+	pop bx
+	mov sp, bp
+	pop bp
+	ret 4
+in2scmplt ENDP	
+			
 ; -----------------------------------------------------------
 ; This procedure extract from a 24-word 16 of his bits, forming a 16-word with witch the procedure findCode works.
 ; This procedure use 2 args (defined above):
@@ -413,6 +485,7 @@ findCode ENDP
 MakeCalibratedWord PROC NEAR
 	push bp
 	mov bp, sp
+	push	bx
 	push	cx
 	push	dx
 	push	si
@@ -461,6 +534,7 @@ MakeCalibratedWord PROC NEAR
 	pop		si
 	pop		dx
 	pop		cx
+	pop		bx
 	mov sp, bp
 	pop bp
 	ret

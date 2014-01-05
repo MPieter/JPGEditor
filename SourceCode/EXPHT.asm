@@ -106,9 +106,9 @@ mov bp, sp
 			je firstRow
 			jmp write
 	nextRow:
-			dec bl
 			cmp bl, 0
 			je	Done
+			dec bl
 			mov cl, ds:[si]
 			inc si
 			sal ax, 1
